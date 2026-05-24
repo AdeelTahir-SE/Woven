@@ -1,9 +1,5 @@
-import Image from "next/image";
+import { HomeExperience } from "@/components/woven-client";
 
 export default function Home() {
-  return (
-    <div>
-      
-    </div>
-  );
+  return <HomeExperience />;
 }
