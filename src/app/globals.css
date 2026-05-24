@@ -471,6 +471,27 @@ input {
   overflow: hidden;
 }
 
+.color-bends-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.classic-color-bends {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(circle at 22% 24%, rgba(200, 169, 110, 0.55), transparent 26%),
+    radial-gradient(circle at 76% 68%, rgba(139, 110, 58, 0.36), transparent 30%),
+    linear-gradient(135deg, #f8f8f6, #efe6d5 46%, #d4c5b0);
+}
+
+.classic-color-bends canvas {
+  opacity: 0.96;
+}
+
 .hero-video {
   position: absolute;
   inset: 0;
@@ -486,6 +507,12 @@ input {
   z-index: 3;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.44));
   content: "";
+}
+
+.hero-classic .hero-media::after {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(248, 248, 246, 0.08), transparent 32%),
+    linear-gradient(180deg, rgba(248, 248, 246, 0.18), rgba(248, 248, 246, 0.36));
 }
 
 .summer-sky {

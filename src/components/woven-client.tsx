@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import ColorBends from "@/components/color-bends";
+import LightPillar from "@/components/light-pillar";
 import {
   fallbackCatalog,
   type CatalogData,
@@ -292,18 +294,48 @@ function Hero({ theme }: { theme: Theme }) {
   return (
     <section id="hero" className={`hero-${theme.heroMedia} relative flex min-h-screen items-center justify-center overflow-hidden px-5 pt-[72px] text-center`}>
       <div className="hero-media" aria-hidden="true">
+        {theme.heroMedia === "classic" && (
+          <ColorBends
+            className="classic-color-bends"
+            colors={["#f8f8f6", "#c8a96e", "#8b6e3a", "#111111"]}
+            rotation={38}
+            autoRotate={2}
+            speed={0.16}
+            scale={1.05}
+            frequency={0.82}
+            warpStrength={0.92}
+            mouseInfluence={0.65}
+            noise={0.08}
+            parallax={0.45}
+            iterations={3}
+            intensity={1.2}
+            bandWidth={5.4}
+            transparent={false}
+          />
+        )}
         {theme.heroMedia === "summer" && (
           <video className="hero-video" autoPlay muted loop playsInline poster="">
             <source src="/videos/themes/summer/hero-section.mp4" type="video/mp4" />
           </video>
         )}
         {theme.heroMedia === "winter" && (
-          <video className="hero-video" autoPlay muted loop playsInline poster="">
-            <source src="/videos/themes/winter/hero.mp4" type="video/mp4" />
-          </video>
+          <LightPillar
+            topColor="#f6feff"
+            bottomColor="#c8b9ff"
+            intensity={0.95}
+            rotationSpeed={0.08}
+            interactive={false}
+            glowAmount={0.01}
+            pillarWidth={2.6}
+            pillarHeight={0.6}
+            noiseIntensity={0.16}
+            pillarRotation={-12}
+            quality="medium"
+            mixBlendMode="screen"
+            className="winter-light-pillar"
+          />
         )}
         {theme.heroMedia === "summer" && <div className="summer-sky"><span /><span /><span /></div>}
-        {theme.heroMedia === "winter" && <div className="snowfall">{Array.from({ length: 34 }).map((_, index) => <i key={index} />)}</div>}
       </div>
       <div className="relative z-10 mx-auto max-w-5xl">
         <h1 className="font-display text-7xl font-light leading-none md:text-11xl">{theme.heroTitle}</h1>
