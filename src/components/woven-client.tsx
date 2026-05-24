@@ -28,18 +28,15 @@ function priceToNumber(price: string) {
 }
 
 function buttonClasses(variant: "primary" | "ghost" | "inverse" = "primary") {
-  const base =
-    "inline-flex min-h-12 items-center justify-center rounded-btn px-6 font-body text-xs font-semibold uppercase tracking-[0.18em] transition duration-hover ease-woven focus:outline-none focus:ring-2 focus:ring-woven-accent focus:ring-offset-3";
-
   if (variant === "ghost") {
-    return `${base} border border-woven-text bg-transparent text-woven-text hover:bg-woven-text hover:text-woven-inverse`;
+    return "button-base button-ghost";
   }
 
   if (variant === "inverse") {
-    return `${base} border border-woven-inverse/30 bg-transparent text-woven-inverse hover:border-woven-accent hover:text-woven-accent`;
+    return "button-base button-inverse";
   }
 
-  return `${base} bg-woven-text text-woven-inverse hover:bg-woven-accent hover:text-woven-text`;
+  return "button-base button-primary";
 }
 
 export function LogoMark({
@@ -217,7 +214,7 @@ function Hero() {
     <section id="hero" className="grain relative flex min-h-screen items-center justify-center overflow-hidden bg-woven-bg px-5 pt-[72px] text-center text-woven-text">
       <div className="mx-auto max-w-5xl">
         <LogoMark logo={5} size="h-24 w-24" className="mb-9" />
-        <h1 className="mx-auto max-w-5xl font-display text-7xl font-light leading-none md:text-10xl">
+        <h1 className="mx-auto max-w-6xl font-display text-7xl font-light leading-none md:text-9xl">
           {letters.map((letter, index) => (
             <span key={`${letter}-${index}`} className="hero-letter inline-block" style={{ animationDelay: `${index * 30}ms` }}>
               {letter === " " ? "\u00A0" : letter}

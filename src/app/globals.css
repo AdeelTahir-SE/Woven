@@ -136,6 +136,60 @@ input {
   outline: none;
 }
 
+.button-base {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-btn);
+  padding: 0 24px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  transition: background var(--duration-hover) var(--ease-woven), border-color var(--duration-hover) var(--ease-woven),
+    color var(--duration-hover) var(--ease-woven);
+}
+
+.button-base:focus-visible {
+  outline: 2px solid var(--color-woven-accent);
+  outline-offset: 3px;
+}
+
+.button-primary {
+  border: 1px solid var(--color-woven-text);
+  background: var(--color-woven-text);
+  color: var(--color-woven-inverse);
+}
+
+.button-primary:hover {
+  background: var(--color-woven-accent);
+  color: var(--color-woven-text);
+}
+
+.button-ghost {
+  border: 1px solid var(--color-woven-text);
+  background: transparent;
+  color: var(--color-woven-text);
+}
+
+.button-ghost:hover {
+  background: var(--color-woven-text);
+  color: var(--color-woven-inverse);
+}
+
+.button-inverse {
+  border: 1px solid rgba(248, 248, 246, 0.3);
+  background: transparent;
+  color: var(--color-woven-inverse);
+}
+
+.button-inverse:hover {
+  border-color: var(--color-woven-accent);
+  color: var(--color-woven-accent);
+}
+
 .grain::after,
 .paper::after,
 .scanlines::after {
