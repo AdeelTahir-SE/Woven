@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { collections, products, type Collection, type Product } from "@/lib/woven-data";
+import { fallbackCatalog, type CatalogData, type Collection, type Product } from "@/lib/woven-data";
 
 type CartLine = {
   slug: string;
@@ -238,7 +238,7 @@ function Hero() {
   );
 }
 
-function CollectionsStrip() {
+function CollectionsStrip({ collections }: { collections: Collection[] }) {
   return (
     <section id="collections-strip" className="sticky top-[60px] z-40 border-y border-woven-border bg-woven-bg/95 py-3 backdrop-blur-nav md:top-[72px]">
       <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-5 md:px-10">
@@ -385,7 +385,7 @@ function BrandStory() {
   );
 }
 
-export function Footer() {
+export function Footer({ collections = fallbackCatalog.collections }: { collections?: Collection[] }) {
   return (
     <footer id="newsletter" className="bg-woven-text px-5 py-20 text-woven-inverse md:px-10">
       <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-[1.2fr_0.8fr_0.8fr_1fr]">
@@ -441,7 +441,8 @@ function FooterColumn({ title, links }: { title: string; links: [string, string]
   );
 }
 
-export function HomeExperience() {
+export function HomeExperience({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
+  const { collections, products } = catalog;
   const [cartLines] = useState<CartLine[]>([
     { slug: products[0].slug, name: products[0].name, price: products[0].price, size: "M" },
   ]);
@@ -451,19 +452,21 @@ export function HomeExperience() {
       <Navigation cartCount={cartLines.length} />
       <main>
         <Hero />
-        <CollectionsStrip />
+        <CollectionsStrip collections={collections} />
         {collections.map((collection) => (
           <CollectionSection key={collection.slug} collection={collection} />
         ))}
         <UniversityBanner />
         <BrandStory />
       </main>
-      <Footer />
+      <Footer collections={collections} />
     </>
   );
 }
 
-export function CollectionIndexPage() {
+export function CollectionIndexPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
+  const { collections } = catalog;
+
   return (
     <>
       <Navigation cartCount={1} />
@@ -487,7 +490,7 @@ export function CollectionIndexPage() {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer collections={collections} />
     </>
   );
 }
@@ -612,8 +615,8 @@ export function ProductDetailPage({ product, collection }: { product: Product; c
   );
 }
 
-export function DropsPage() {
-  const glitch = collections.find((collection) => collection.slug === "glitch-drop")!;
+export function DropsPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
+  const glitch = catalog.collections.find((collection) => collection.slug === "glitch-drop")!;
   return (
     <>
       <Navigation cartCount={1} />
@@ -631,13 +634,14 @@ export function DropsPage() {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer collections={catalog.collections} />
     </>
   );
 }
 
-export function SearchPage() {
+export function SearchPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
   const [query, setQuery] = useState("");
+  const { collections, products } = catalog;
   const results = products.filter((product) => product.name.toLowerCase().includes(query.toLowerCase()));
 
   return (
@@ -668,7 +672,14 @@ export function SearchPage() {
   );
 }
 
-export function SimpleContentPage({ type }: { type: "about" | "university" | "cart" | "checkout" | "account" | "legal" }) {
+export function SimpleContentPage({
+  type,
+  catalog = fallbackCatalog,
+}: {
+  type: "about" | "university" | "cart" | "checkout" | "account" | "legal";
+  catalog?: CatalogData;
+}) {
+  const { products } = catalog;
   const subtotal = products.slice(0, 2).reduce((sum, product) => sum + priceToNumber(product.price), 0);
   const title =
     type === "about"
@@ -736,7 +747,7 @@ export function SimpleContentPage({ type }: { type: "about" | "university" | "ca
           )}
         </section>
       </main>
-      <Footer />
+      <Footer collections={catalog.collections} />
     </>
   );
 }

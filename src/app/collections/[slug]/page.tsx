@@ -1,14 +1,15 @@
 import { notFound } from "next/navigation";
 import { CollectionDetailPage } from "@/components/woven-client";
-import { collections, getCollection } from "@/lib/woven-data";
+import { getCatalogData } from "@/lib/supabase-catalog";
+import { fallbackCatalog, getCollectionFromCatalog } from "@/lib/woven-data";
 
 export function generateStaticParams() {
-  return collections.map((collection) => ({ slug: collection.slug }));
+  return fallbackCatalog.collections.map((collection) => ({ slug: collection.slug }));
 }
 
 export async function generateMetadata(props: PageProps<"/collections/[slug]">) {
   const { slug } = await props.params;
-  const collection = getCollection(slug);
+  const collection = getCollectionFromCatalog(await getCatalogData(), slug);
 
   if (!collection) {
     return { title: "Collection Not Found | Woven" };
@@ -22,7 +23,7 @@ export async function generateMetadata(props: PageProps<"/collections/[slug]">) 
 
 export default async function CollectionPage(props: PageProps<"/collections/[slug]">) {
   const { slug } = await props.params;
-  const collection = getCollection(slug);
+  const collection = getCollectionFromCatalog(await getCatalogData(), slug);
 
   if (!collection) {
     notFound();

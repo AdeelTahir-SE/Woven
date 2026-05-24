@@ -1,14 +1,15 @@
 import { notFound } from "next/navigation";
 import { ProductDetailPage } from "@/components/woven-client";
-import { getCollection, getProduct, products } from "@/lib/woven-data";
+import { getCatalogData } from "@/lib/supabase-catalog";
+import { fallbackCatalog, getCollectionFromCatalog, getProductFromCatalog } from "@/lib/woven-data";
 
 export function generateStaticParams() {
-  return products.map((product) => ({ slug: product.slug }));
+  return fallbackCatalog.products.map((product) => ({ slug: product.slug }));
 }
 
 export async function generateMetadata(props: PageProps<"/products/[slug]">) {
   const { slug } = await props.params;
-  const product = getProduct(slug);
+  const product = getProductFromCatalog(await getCatalogData(), slug);
 
   if (!product) {
     return { title: "Product Not Found | Woven" };
@@ -22,13 +23,14 @@ export async function generateMetadata(props: PageProps<"/products/[slug]">) {
 
 export default async function ProductPage(props: PageProps<"/products/[slug]">) {
   const { slug } = await props.params;
-  const product = getProduct(slug);
+  const catalog = await getCatalogData();
+  const product = getProductFromCatalog(catalog, slug);
 
   if (!product) {
     notFound();
   }
 
-  const collection = getCollection(product.collection);
+  const collection = getCollectionFromCatalog(catalog, product.collection);
 
   if (!collection) {
     notFound();

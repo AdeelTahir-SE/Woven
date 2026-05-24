@@ -34,7 +34,41 @@ export type Collection = {
   products: Product[];
 };
 
-export const products: Product[] = [
+export type CatalogData = {
+  collections: Collection[];
+  products: Product[];
+};
+
+export type SupabaseCollectionRow = {
+  slug: string;
+  number: string;
+  title: string;
+  display_title: string;
+  tagline: string;
+  mood: string;
+  logo: number;
+  logo_sheet: 1 | 2;
+  bg_class: string;
+  text_class: string;
+  font_class: string;
+  sort_order: number;
+};
+
+export type SupabaseProductRow = {
+  sku: string;
+  slug: string;
+  name: string;
+  price_pkr: number;
+  collection_slug: CollectionSlug;
+  sizes: string[];
+  palette: string;
+  status: Product["status"] | null;
+  description: string;
+  material: string;
+  sort_order: number;
+};
+
+export const fallbackProducts: Product[] = [
   {
     id: "tc-01",
     slug: "foundation-oxford-shirt",
@@ -188,7 +222,7 @@ export const products: Product[] = [
   },
 ];
 
-export const collections: Collection[] = [
+export const fallbackCollectionShells: Omit<Collection, "products">[] = [
   {
     slug: "thread-classics",
     number: "01",
@@ -201,7 +235,6 @@ export const collections: Collection[] = [
     bgClass: "bg-woven-bg",
     textClass: "text-woven-text",
     fontClass: "font-display",
-    products: products.filter((product) => product.collection === "thread-classics"),
   },
   {
     slug: "minimal-edit",
@@ -215,7 +248,6 @@ export const collections: Collection[] = [
     bgClass: "bg-woven-surface",
     textClass: "text-woven-text",
     fontClass: "font-syne",
-    products: products.filter((product) => product.collection === "minimal-edit"),
   },
   {
     slug: "digital-weave",
@@ -229,7 +261,6 @@ export const collections: Collection[] = [
     bgClass: "bg-woven-dark",
     textClass: "text-woven-inverse",
     fontClass: "font-grotesk",
-    products: products.filter((product) => product.collection === "digital-weave"),
   },
   {
     slug: "street-stitch",
@@ -243,7 +274,6 @@ export const collections: Collection[] = [
     bgClass: "bg-woven-bg",
     textClass: "text-woven-text",
     fontClass: "font-bebas",
-    products: products.filter((product) => product.collection === "street-stitch"),
   },
   {
     slug: "glitch-drop",
@@ -257,7 +287,6 @@ export const collections: Collection[] = [
     bgClass: "bg-woven-near-black",
     textClass: "text-woven-inverse",
     fontClass: "font-rajdhani",
-    products: products.filter((product) => product.collection === "glitch-drop"),
   },
   {
     slug: "society",
@@ -271,14 +300,61 @@ export const collections: Collection[] = [
     bgClass: "bg-woven-tan",
     textClass: "text-woven-text",
     fontClass: "font-playfair",
-    products: products.filter((product) => product.collection === "society"),
   },
 ];
 
-export function getCollection(slug: string) {
-  return collections.find((collection) => collection.slug === slug);
+export const fallbackCollections = buildCollections(fallbackCollectionShells, fallbackProducts);
+export const fallbackCatalog: CatalogData = {
+  collections: fallbackCollections,
+  products: fallbackProducts,
+};
+
+export function formatPrice(pricePkr: number) {
+  return `PKR ${pricePkr.toLocaleString("en-US")}`;
 }
 
-export function getProduct(slug: string) {
-  return products.find((product) => product.slug === slug);
+export function mapSupabaseCollection(row: SupabaseCollectionRow): Omit<Collection, "products"> {
+  return {
+    slug: row.slug as CollectionSlug,
+    number: row.number,
+    title: row.title,
+    displayTitle: row.display_title,
+    tagline: row.tagline,
+    mood: row.mood,
+    logo: row.logo,
+    logoSheet: row.logo_sheet,
+    bgClass: row.bg_class,
+    textClass: row.text_class,
+    fontClass: row.font_class,
+  };
+}
+
+export function mapSupabaseProduct(row: SupabaseProductRow): Product {
+  return {
+    id: row.sku,
+    slug: row.slug,
+    name: row.name,
+    price: formatPrice(row.price_pkr),
+    collection: row.collection_slug,
+    sizes: row.sizes,
+    palette: row.palette,
+    status: row.status ?? undefined,
+    description: row.description,
+    material: row.material,
+  };
+}
+
+export function buildCollections(collectionShells: Omit<Collection, "products">[], catalogProducts: Product[]) {
+  return collectionShells.map((collection) => ({
+    ...collection,
+    products: catalogProducts.filter((product) => product.collection === collection.slug),
+  }));
+}
+
+export function getCollectionFromCatalog(catalog: CatalogData, slug: string) {
+  return catalog.collections.find((collection) => collection.slug === slug);
+}
+
+export function getProductFromCatalog(catalog: CatalogData, slug: string) {
+  return catalog.products.find((product) => product.slug === slug);
 }
