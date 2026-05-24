@@ -52,29 +52,25 @@ export async function getCatalogData(): Promise<CatalogData> {
     return fallbackCatalog;
   }
 
-  try {
-    const [themeRows, collectionRows, productRows] = await Promise.all([
-      fetchTable<SupabaseThemeRow>("themes", "select=*&order=sort_order.asc"),
-      fetchTable<SupabaseCollectionRow>("collections", "select=*&order=sort_order.asc"),
-      fetchTable<SupabaseProductRow>("products", "select=*&order=sort_order.asc"),
-    ]);
+  const [themeRows, collectionRows, productRows] = await Promise.all([
+    fetchTable<SupabaseThemeRow>("themes", "select=*&order=sort_order.asc"),
+    fetchTable<SupabaseCollectionRow>("collections", "select=*&order=sort_order.asc"),
+    fetchTable<SupabaseProductRow>("products", "select=*&order=sort_order.asc"),
+  ]);
 
-    if (themeRows.length === 0 || collectionRows.length === 0 || productRows.length === 0) {
-      return fallbackCatalog;
-    }
-
-    const themes = themeRows.map(mapSupabaseTheme);
-    const catalogProducts = productRows.map(mapSupabaseProduct);
-    const collectionShells = collectionRows.map(mapSupabaseCollection);
-
-    return {
-      themes,
-      collections: buildCollections(collectionShells, catalogProducts),
-      products: catalogProducts,
-    };
-  } catch (error) {
-    return fallbackCatalog;
+  if (themeRows.length === 0 || collectionRows.length === 0 || productRows.length === 0) {
+    throw new Error("Supabase catalog is empty. Run the Woven schema and seed SQL before rendering the storefront.");
   }
+
+  const themes = themeRows.map(mapSupabaseTheme);
+  const catalogProducts = productRows.map(mapSupabaseProduct);
+  const collectionShells = collectionRows.map(mapSupabaseCollection);
+
+  return {
+    themes,
+    collections: buildCollections(collectionShells, catalogProducts),
+    products: catalogProducts,
+  };
 }
 
 export async function getCollections(): Promise<Collection[]> {

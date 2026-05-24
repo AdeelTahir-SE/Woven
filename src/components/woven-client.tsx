@@ -20,6 +20,8 @@ type CartLine = {
   size: string;
 };
 
+type PaymentMethod = "cod" | "bank_transfer" | "card";
+
 const logoPositions: Record<number, string> = {
   1: "0% 0%",
   2: "50% 0%",
@@ -43,7 +45,7 @@ function priceToNumber(price: string) {
 }
 
 function getTheme(catalog: CatalogData, themeId: ThemeId) {
-  return catalog.themes.find((theme) => theme.id === themeId) ?? fallbackCatalog.themes[0];
+  return catalog.themes.find((theme) => theme.id === themeId) ?? catalog.themes[0] ?? fallbackCatalog.themes[0];
 }
 
 function getThemeCollections(catalog: CatalogData, themeId: ThemeId) {
@@ -93,7 +95,7 @@ export function ProductArtwork({ product, tall = false }: { product: Product; ta
   const [imageFailed, setImageFailed] = useState(false);
 
   return (
-    <div className={`product-art relative overflow-hidden bg-gradient-to-br ${product.palette} ${tall ? "aspect-[3/5]" : "aspect-product"}`}>
+    <div className={`product-art relative overflow-hidden bg-woven-surface ${tall ? "aspect-[3/5]" : "aspect-product"}`}>
       {imageUrl && !imageFailed ? (
         <img
           src={imageUrl}
@@ -103,11 +105,9 @@ export function ProductArtwork({ product, tall = false }: { product: Product; ta
           onError={() => setImageFailed(true)}
         />
       ) : (
-        <>
-          <div className="absolute inset-x-[18%] bottom-[12%] top-[12%] border border-white/45 bg-white/15 backdrop-blur-[1px]" />
-          <div className="absolute left-1/2 top-[18%] h-[46%] w-[38%] -translate-x-1/2 rounded-t-[42%] border border-current/20 bg-current/10" />
-          <div className="absolute bottom-[18%] left-1/2 h-[30%] w-[52%] -translate-x-1/2 border border-current/20 bg-current/10" />
-        </>
+        <div className="grid h-full place-items-center p-6 text-center text-woven-muted">
+          <span className="font-mono text-2xs uppercase tracking-[0.18em]">{product.imageAlt}</span>
+        </div>
       )}
       <span className="absolute left-4 top-4 font-mono text-2xs uppercase tracking-[0.18em] opacity-70">{product.id}</span>
       {product.status && (
@@ -124,7 +124,7 @@ export function ProductCard({ product, collection }: { product: Product; collect
   const fontClass = collection?.fontClass ?? "font-display";
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-card border border-current/15 bg-white/80 text-current shadow-sm backdrop-blur transition duration-hover ease-woven hover:-translate-y-1 hover:border-woven-accent">
+    <article className="group flex h-full flex-col overflow-hidden rounded-card border border-woven-border bg-white/92 text-woven-text shadow-sm backdrop-blur transition duration-hover ease-woven hover:-translate-y-1 hover:border-woven-accent">
       <Link href={`/products/${product.slug}`} className="block focus:outline-none focus:ring-2 focus:ring-woven-accent">
         <ProductArtwork product={product} />
       </Link>
@@ -147,7 +147,7 @@ export function ProductCard({ product, collection }: { product: Product; collect
               type="button"
               onClick={() => setSelectedSize(size)}
               className={`grid h-10 min-w-10 place-items-center border px-3 font-mono text-2xs uppercase transition ${
-                selectedSize === size ? "border-current bg-current text-white" : "border-current/25 hover:border-current"
+                selectedSize === size ? "border-woven-text bg-woven-text text-woven-inverse" : "border-current/25 hover:border-current"
               }`}
             >
               {size}
@@ -193,6 +193,7 @@ function ThemeSwitcher({
           aria-current={theme.id === activeTheme.id ? "page" : undefined}
           className={`theme-switcher-link ${theme.id === activeTheme.id ? "is-active" : ""}`}
         >
+          <span className={`theme-switcher-orb theme-switcher-orb-${theme.id}`} aria-hidden="true" />
           {theme.label}
         </Link>
       ))}
@@ -200,9 +201,8 @@ function ThemeSwitcher({
   );
 }
 
-function Navigation({ catalog, activeTheme, cartCount }: { catalog: CatalogData; activeTheme: Theme; cartCount: number }) {
+function useThemeTransition(activeTheme: Theme) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   const [ripple, setRipple] = useState<{ x: number; y: number; theme: ThemeId } | null>(null);
 
   function handleThemeClick(event: React.MouseEvent<HTMLAnchorElement>, themeId: ThemeId) {
@@ -223,16 +223,15 @@ function Navigation({ catalog, activeTheme, cartCount }: { catalog: CatalogData;
     document.documentElement.style.setProperty("--theme-y", `${event.clientY}px`);
     document.documentElement.style.setProperty("--theme-radius", `${Math.ceil(radius)}px`);
 
-    const viewTransition = (
-      document as Document & {
-        startViewTransition?: (callback: () => void) => { finished: Promise<void> };
-      }
-    ).startViewTransition;
+    const transitionDocument = document as Document & {
+      startViewTransition?: (callback: () => void) => { finished: Promise<void> };
+    };
 
-    if (viewTransition && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      viewTransition(() => {
+    if (transitionDocument.startViewTransition && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const transition = transitionDocument.startViewTransition(() => {
         router.push(href);
       });
+      transition.finished.catch(() => undefined);
       return;
     }
 
@@ -243,34 +242,39 @@ function Navigation({ catalog, activeTheme, cartCount }: { catalog: CatalogData;
     }, 420);
   }
 
+  return { handleThemeClick, ripple };
+}
+
+function Navigation({ activeTheme, cartCount }: { activeTheme: Theme; cartCount: number }) {
+  const [open, setOpen] = useState(false);
+  const navTextClass = activeTheme.id === "summer" ? "text-white" : activeTheme.navTextClass;
+
   return (
     <>
       <header className={`fixed inset-x-0 top-0 z-50 border-b backdrop-blur-nav ${activeTheme.navClass}`}>
         <nav className="mx-auto flex min-h-[60px] max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-2 md:min-h-[72px] md:px-10">
-          <Link href={themeHref[activeTheme.id]} className={`font-display text-2xl font-medium tracking-[0.18em] ${activeTheme.navTextClass}`}>
+          <Link href={themeHref[activeTheme.id]} className={`font-display text-2xl font-medium tracking-[0.18em] ${navTextClass}`}>
             WOVEN
           </Link>
-          <div className={`hidden items-center gap-8 font-body text-xs uppercase tracking-[0.16em] md:flex ${activeTheme.navTextClass}`}>
+          <div className={`hidden items-center gap-8 font-body text-xs uppercase tracking-[0.16em] md:flex ${navTextClass}`}>
             <Link href="/collections" className="nav-link">Collections</Link>
             <Link href="/drops" className="nav-link">Drops</Link>
             <Link href="/about" className="nav-link">About</Link>
           </div>
           <div className="hidden items-center gap-3 md:flex">
-            <ThemeSwitcher themes={catalog.themes} activeTheme={activeTheme} onThemeClick={handleThemeClick} />
             <Link href="/search" className="icon-button">Search</Link>
             <Link href="/cart" className="icon-button relative">
               Bag
               <span className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center bg-woven-accent px-1 font-mono text-2xs text-woven-text">{cartCount}</span>
             </Link>
           </div>
-          <button type="button" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen((value) => !value)} className={`grid h-11 w-11 place-items-center border border-current text-xs uppercase ${activeTheme.navTextClass} md:hidden`}>
+          <button type="button" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen((value) => !value)} className={`grid h-11 w-11 place-items-center border border-current text-xs uppercase ${navTextClass} md:hidden`}>
             Menu
           </button>
         </nav>
         {open && (
           <div className="border-t border-current/15 bg-white p-5 text-black md:hidden">
-            <ThemeSwitcher themes={catalog.themes} activeTheme={activeTheme} onThemeClick={handleThemeClick} />
-            <div className="mt-5 grid gap-3 font-body text-lg uppercase tracking-[0.16em]">
+            <div className="grid gap-3 font-body text-lg uppercase tracking-[0.16em]">
               {["Collections", "Drops", "About", "Search", "Cart"].map((item) => (
                 <Link key={item} href={`/${item === "Collections" ? "collections" : item.toLowerCase()}`} onClick={() => setOpen(false)}>
                   {item}
@@ -280,7 +284,6 @@ function Navigation({ catalog, activeTheme, cartCount }: { catalog: CatalogData;
           </div>
         )}
       </header>
-      <ThemeRipple ripple={ripple} />
     </>
   );
 }
@@ -291,7 +294,7 @@ function Hero({ theme }: { theme: Theme }) {
       <div className="hero-media" aria-hidden="true">
         {theme.heroMedia === "summer" && (
           <video className="hero-video" autoPlay muted loop playsInline poster="">
-            <source src="/videos/themes/summer/hero.mp4" type="video/mp4" />
+            <source src="/videos/themes/summer/hero-section.mp4" type="video/mp4" />
           </video>
         )}
         {theme.heroMedia === "winter" && (
@@ -309,6 +312,30 @@ function Hero({ theme }: { theme: Theme }) {
           <a href="#collections-strip" className={buttonClasses(theme.id === "winter" ? "ghost" : "primary")}>Explore Collections</a>
           <Link href="/collections" className={buttonClasses("ghost")}>All Themes</Link>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function ThemeBar({
+  catalog,
+  activeTheme,
+  onThemeClick,
+}: {
+  catalog: CatalogData;
+  activeTheme: Theme;
+  onThemeClick: (event: React.MouseEvent<HTMLAnchorElement>, themeId: ThemeId) => void;
+}) {
+  const barTextClass = activeTheme.id === "summer" ? "text-white" : activeTheme.stripTextClass;
+
+  return (
+    <section className={`theme-bar ${activeTheme.stripClass} ${barTextClass}`}>
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-10">
+        <div>
+          <p className="font-mono text-2xs uppercase tracking-[0.18em] opacity-60">Choose theme</p>
+          <p className="mt-1 font-display text-3xl leading-none">{activeTheme.label}</p>
+        </div>
+        <ThemeSwitcher themes={catalog.themes} activeTheme={activeTheme} onThemeClick={onThemeClick} />
       </div>
     </section>
   );
@@ -363,7 +390,7 @@ function BrandStory({ theme }: { theme: Theme }) {
   return (
     <section id="brand-story" className="px-5 py-24 md:px-10">
       <div className="mx-auto max-w-4xl">
-        <p className="font-display text-6xl italic leading-tight">"Clothes with a point of view, made for real days."</p>
+        <p className="font-display text-6xl italic leading-tight">&ldquo;Clothes with a point of view, made for real days.&rdquo;</p>
         <p className="mt-8 max-w-2xl font-body text-md leading-relaxed opacity-70">
           Woven builds theme-led clothing worlds for everyday dressing, from refined classics to warm-weather ease and cold-weather layers.
         </p>
@@ -412,17 +439,20 @@ export function ThemeExperience({ catalog = fallbackCatalog, themeId = "classic"
   const collections = getThemeCollections(catalog, activeTheme.id);
   const products = getThemeProducts(catalog, activeTheme.id);
   const [cartLines] = useState<CartLine[]>(products[0] ? [{ slug: products[0].slug, name: products[0].name, price: products[0].price, pricePkr: priceToNumber(products[0].price), size: "M" }] : []);
+  const { handleThemeClick, ripple } = useThemeTransition(activeTheme);
 
   return (
     <div className={activeTheme.pageClass} data-theme={activeTheme.id}>
-      <Navigation catalog={catalog} activeTheme={activeTheme} cartCount={cartLines.length} />
+      <Navigation activeTheme={activeTheme} cartCount={cartLines.length} />
       <main>
         <Hero theme={activeTheme} />
+        <ThemeBar catalog={catalog} activeTheme={activeTheme} onThemeClick={handleThemeClick} />
         <CollectionsStrip collections={collections} theme={activeTheme} />
         {collections.map((collection) => <CollectionSection key={collection.slug} collection={collection} />)}
         <BrandStory theme={activeTheme} />
       </main>
       <Footer catalog={catalog} activeThemeId={activeTheme.id} />
+      <ThemeRipple ripple={ripple} />
     </div>
   );
 }
@@ -432,7 +462,7 @@ export const HomeExperience = ThemeExperience;
 export function CollectionIndexPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
   return (
     <>
-      <Navigation catalog={catalog} activeTheme={getTheme(catalog, "classic")} cartCount={1} />
+      <Navigation activeTheme={getTheme(catalog, "classic")} cartCount={1} />
       <main className="bg-woven-bg px-5 pb-24 pt-32 text-woven-text md:px-10">
         <div className="mx-auto max-w-7xl">
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-woven-accent">All Theme Collections</p>
@@ -469,7 +499,7 @@ export function CollectionDetailPage({ catalog = fallbackCatalog, collection }: 
   const activeTheme = getTheme(catalog, collection.theme);
   return (
     <div className={activeTheme.pageClass}>
-      <Navigation catalog={catalog} activeTheme={activeTheme} cartCount={1} />
+      <Navigation activeTheme={activeTheme} cartCount={1} />
       <main className={`${collection.bgClass} ${collection.textClass} pt-[72px]`}>
         <section className="px-5 py-24 md:px-10">
           <div className="mx-auto max-w-7xl">
@@ -497,7 +527,7 @@ export function ProductDetailPage({ catalog = fallbackCatalog, product, collecti
 
   return (
     <div className={activeTheme.pageClass}>
-      <Navigation catalog={catalog} activeTheme={activeTheme} cartCount={added ? 2 : 1} />
+      <Navigation activeTheme={activeTheme} cartCount={added ? 2 : 1} />
       <main className="px-5 pb-24 pt-32 md:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="font-mono text-2xs uppercase tracking-[0.16em] opacity-60">
@@ -514,7 +544,7 @@ export function ProductDetailPage({ catalog = fallbackCatalog, product, collecti
               <p className="font-body text-md leading-relaxed opacity-70">{product.description}</p>
               <div className="flex flex-wrap gap-2">
                 {product.sizes.map((size) => (
-                  <button key={size} type="button" onClick={() => setSelectedSize(size)} className={`grid h-11 min-w-11 place-items-center border px-3 font-mono text-xs ${selectedSize === size ? "border-current bg-current text-white" : "border-current/25"}`}>{size}</button>
+                  <button key={size} type="button" onClick={() => setSelectedSize(size)} className={`grid h-11 min-w-11 place-items-center border px-3 font-mono text-xs ${selectedSize === size ? "border-woven-text bg-woven-text text-woven-inverse" : "border-current/25"}`}>{size}</button>
                 ))}
               </div>
               <button type="button" onClick={() => setAdded(true)} className={`${buttonClasses("primary")} w-full`}>{product.status === "Notify Me" ? "Notify Me" : "Add To Cart"}</button>
@@ -538,7 +568,7 @@ export function DropsPage({ catalog = fallbackCatalog }: { catalog?: CatalogData
   const products = catalog.products.filter((product) => product.status === "Notify Me" || product.status === "New").slice(0, 6);
   return (
     <>
-      <Navigation catalog={catalog} activeTheme={getTheme(catalog, "winter")} cartCount={1} />
+      <Navigation activeTheme={getTheme(catalog, "winter")} cartCount={1} />
       <main className="bg-woven-near-black px-5 pt-32 text-woven-inverse md:px-10">
         <div className="mx-auto max-w-7xl pb-24">
           <h1 className="font-rajdhani text-10xl font-bold leading-none">Limited. Always.</h1>
@@ -560,7 +590,7 @@ export function SearchPage({ catalog = fallbackCatalog }: { catalog?: CatalogDat
   const results = catalog.products.filter((product) => product.name.toLowerCase().includes(query.toLowerCase()));
   return (
     <>
-      <Navigation catalog={catalog} activeTheme={getTheme(catalog, "classic")} cartCount={1} />
+      <Navigation activeTheme={getTheme(catalog, "classic")} cartCount={1} />
       <main className="min-h-screen bg-woven-dark px-5 pt-32 text-woven-inverse md:px-10">
         <div className="mx-auto max-w-7xl">
           <label className="font-mono text-xs uppercase tracking-[0.22em] text-woven-accent" htmlFor="search">Search Woven</label>
@@ -585,7 +615,7 @@ function CheckoutForm({ products }: { products: Product[] }) {
   const subtotal = items.reduce((sum, item) => sum + item.pricePkr * item.quantity, 0);
   const shipping = subtotal > 0 ? 250 : 0;
   const total = subtotal + shipping;
-  const [paymentMethod, setPaymentMethod] = useState<"cod" | "bank_transfer" | "card">("cod");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
@@ -595,6 +625,7 @@ function CheckoutForm({ products }: { products: Product[] }) {
     setMessage("");
 
     const form = new FormData(event.currentTarget);
+    const cardNumber = String(form.get("cardNumber") ?? "").replace(/\D/g, "");
     const response = await fetch("/api/checkout", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -605,6 +636,15 @@ function CheckoutForm({ products }: { products: Product[] }) {
         address: form.get("address"),
         city: form.get("city"),
         paymentMethod,
+        card:
+          paymentMethod === "card"
+            ? {
+                holder: form.get("cardHolder"),
+                last4: cardNumber.slice(-4),
+                brand: detectCardBrand(cardNumber),
+                expiry: form.get("cardExpiry"),
+              }
+            : undefined,
         items,
       }),
     });
@@ -650,7 +690,7 @@ function CheckoutForm({ products }: { products: Product[] }) {
           {[
             ["cod", "Cash on Delivery", "Pay when the order arrives."],
             ["bank_transfer", "Bank Transfer", "Create the order and complete transfer manually."],
-            ["card", "Card Placeholder", "Creates a pending payment record for provider integration."],
+            ["card", "Card Payment", "Authorize securely using your card details."],
           ].map(([value, title, copy]) => (
             <label key={value} className={`payment-option ${paymentMethod === value ? "is-selected" : ""}`}>
               <input
@@ -658,7 +698,7 @@ function CheckoutForm({ products }: { products: Product[] }) {
                 name="paymentMethod"
                 value={value}
                 checked={paymentMethod === value}
-                onChange={() => setPaymentMethod(value as "cod" | "bank_transfer" | "card")}
+                onChange={() => setPaymentMethod(value as PaymentMethod)}
               />
               <span>
                 <strong>{title}</strong>
@@ -667,6 +707,7 @@ function CheckoutForm({ products }: { products: Product[] }) {
             </label>
           ))}
         </div>
+        {paymentMethod === "card" && <CardPaymentFields />}
         <button type="submit" disabled={status === "saving"} className={buttonClasses("primary")}>
           {status === "saving" ? "Creating Order" : "Place Order"}
         </button>
@@ -700,6 +741,71 @@ function CheckoutForm({ products }: { products: Product[] }) {
   );
 }
 
+function detectCardBrand(cardNumber: string) {
+  if (/^4/.test(cardNumber)) return "visa";
+  if (/^(5[1-5]|2[2-7])/.test(cardNumber)) return "mastercard";
+  if (/^3[47]/.test(cardNumber)) return "amex";
+  return "card";
+}
+
+function formatCardNumberInput(event: React.FormEvent<HTMLInputElement>) {
+  const digits = event.currentTarget.value.replace(/\D/g, "").slice(0, 19);
+  event.currentTarget.value = digits.replace(/(.{4})/g, "$1 ").trim();
+}
+
+function formatExpiryInput(event: React.FormEvent<HTMLInputElement>) {
+  const digits = event.currentTarget.value.replace(/\D/g, "").slice(0, 4);
+  const month = digits.slice(0, 2);
+  const year = digits.slice(2);
+  event.currentTarget.value = year ? `${month}/${year}` : month;
+}
+
+function CardPaymentFields() {
+  return (
+    <div className="card-payment-panel">
+      <label className="checkout-field">
+        <span>Name on card</span>
+        <input name="cardHolder" required autoComplete="cc-name" placeholder="Cardholder name" />
+      </label>
+      <label className="checkout-field md:col-span-2">
+        <span>Card number</span>
+        <input
+          name="cardNumber"
+          required
+          autoComplete="cc-number"
+          inputMode="numeric"
+          onInput={formatCardNumberInput}
+          minLength={12}
+          maxLength={23}
+          pattern="[0-9 ]{12,23}"
+          placeholder="4242 4242 4242 4242"
+        />
+      </label>
+      <label className="checkout-field">
+        <span>Expiry</span>
+        <input
+          name="cardExpiry"
+          required
+          autoComplete="cc-exp"
+          inputMode="numeric"
+          onInput={formatExpiryInput}
+          minLength={5}
+          maxLength={5}
+          pattern="(0[1-9]|1[0-2])/[0-9]{2}"
+          placeholder="MM/YY"
+        />
+      </label>
+      <label className="checkout-field">
+        <span>CVC</span>
+        <input name="cardCvc" required autoComplete="cc-csc" inputMode="numeric" minLength={3} maxLength={4} pattern="[0-9]{3,4}" placeholder="123" />
+      </label>
+      <p className="md:col-span-2 font-body text-sm leading-relaxed text-woven-muted">
+        Card details are used only for this checkout request. Woven saves the brand and last four digits with the payment record.
+      </p>
+    </div>
+  );
+}
+
 export function SimpleContentPage({ type, catalog = fallbackCatalog }: { type: "about" | "cart" | "checkout" | "account" | "legal"; catalog?: CatalogData }) {
   const products = useMemo(() => catalog.products.slice(0, 2), [catalog.products]);
   const subtotal = products.reduce((sum, product) => sum + priceToNumber(product.price), 0);
@@ -707,7 +813,7 @@ export function SimpleContentPage({ type, catalog = fallbackCatalog }: { type: "
 
   return (
     <>
-      <Navigation catalog={catalog} activeTheme={getTheme(catalog, "classic")} cartCount={1} />
+      <Navigation activeTheme={getTheme(catalog, "classic")} cartCount={1} />
       <main className="bg-woven-bg px-5 pb-24 pt-32 text-woven-text md:px-10">
         <section className="mx-auto max-w-7xl">
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-woven-accent">Woven</p>

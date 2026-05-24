@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import { ProductDetailPage } from "@/components/woven-client";
 import { getCatalogData } from "@/lib/supabase-catalog";
-import { fallbackCatalog, getCollectionFromCatalog, getProductFromCatalog } from "@/lib/woven-data";
+import { getCollectionFromCatalog, getProductFromCatalog } from "@/lib/woven-data";
 
-export function generateStaticParams() {
-  return fallbackCatalog.products.map((product) => ({ slug: product.slug }));
+export async function generateStaticParams() {
+  const catalog = await getCatalogData();
+
+  return catalog.products.map((product) => ({ slug: product.slug }));
 }
 
 export async function generateMetadata(props: PageProps<"/products/[slug]">) {

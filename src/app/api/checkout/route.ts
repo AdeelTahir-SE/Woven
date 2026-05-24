@@ -18,6 +18,12 @@ type CheckoutPayload = {
   address: string;
   city: string;
   paymentMethod: "cod" | "bank_transfer" | "card";
+  card?: {
+    holder?: string;
+    last4?: string;
+    brand?: string;
+    expiry?: string;
+  };
   items: CheckoutItem[];
 };
 
@@ -49,7 +55,7 @@ async function insertRow(table: string, body: unknown) {
 }
 
 function isValidPayload(payload: Partial<CheckoutPayload>): payload is CheckoutPayload {
-  return Boolean(
+  const hasCheckoutDetails = Boolean(
     payload.customerName &&
       payload.email &&
       payload.phone &&
@@ -59,6 +65,43 @@ function isValidPayload(payload: Partial<CheckoutPayload>): payload is CheckoutP
       Array.isArray(payload.items) &&
       payload.items.length > 0,
   );
+
+  if (!hasCheckoutDetails) {
+    return false;
+  }
+
+  if (payload.paymentMethod !== "card") {
+    return true;
+  }
+
+  return Boolean(
+    payload.card?.holder &&
+      payload.card?.last4 &&
+      /^\d{4}$/.test(payload.card.last4) &&
+      payload.card?.expiry &&
+      /^(0[1-9]|1[0-2])\/\d{2}$/.test(payload.card.expiry),
+  );
+}
+
+function getOrderStatus(paymentMethod: CheckoutPayload["paymentMethod"]) {
+  if (paymentMethod === "cod") return "pay_on_delivery";
+  if (paymentMethod === "card") return "paid";
+  return "pending_payment";
+}
+
+function getPaymentStatus(paymentMethod: CheckoutPayload["paymentMethod"]) {
+  if (paymentMethod === "cod") return "pay_on_delivery";
+  if (paymentMethod === "card") return "authorized";
+  return "pending";
+}
+
+function getProviderReference(payload: CheckoutPayload) {
+  if (payload.paymentMethod !== "card" || !payload.card) {
+    return null;
+  }
+
+  const brand = payload.card.brand ?? "card";
+  return `${brand.toUpperCase()}-${payload.card.last4}`;
 }
 
 export async function POST(request: Request) {
@@ -75,7 +118,7 @@ export async function POST(request: Request) {
   if (!hasSupabaseConfig()) {
     return NextResponse.json({
       orderNumber: `LOCAL-${Date.now()}`,
-      paymentStatus: "pending",
+      paymentStatus: getPaymentStatus(payload.paymentMethod),
       totalPkr: total,
     });
   }
@@ -95,7 +138,7 @@ export async function POST(request: Request) {
       subtotal_pkr: subtotal,
       shipping_pkr: shipping,
       total_pkr: total,
-      status: "pending_payment",
+      status: getOrderStatus(payload.paymentMethod),
     });
 
     await insertRow("order_items", payload.items.map((item) => ({
@@ -111,13 +154,14 @@ export async function POST(request: Request) {
     await insertRow("payments", {
       order_id: orderId,
       provider: payload.paymentMethod,
-      status: payload.paymentMethod === "cod" ? "pay_on_delivery" : "pending",
+      status: getPaymentStatus(payload.paymentMethod),
       amount_pkr: total,
+      provider_reference: getProviderReference(payload),
     });
 
     return NextResponse.json({
       orderNumber,
-      paymentStatus: payload.paymentMethod === "cod" ? "pay_on_delivery" : "pending",
+      paymentStatus: getPaymentStatus(payload.paymentMethod),
       totalPkr: total,
     });
   } catch {
