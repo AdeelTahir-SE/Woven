@@ -161,9 +161,6 @@ function Navigation({ cartCount }: { cartCount: number }) {
           <Link href="/drops" className="nav-link">
             Drops
           </Link>
-          <Link href="/university" className="nav-link">
-            University
-          </Link>
           <Link href="/about" className="nav-link">
             About
           </Link>
@@ -195,7 +192,7 @@ function Navigation({ cartCount }: { cartCount: number }) {
       {open && (
         <div className="border-t border-woven-border bg-woven-bg p-5 md:hidden">
           <div className="grid gap-3 font-body text-lg uppercase tracking-[0.16em]">
-            {["Collections", "Drops", "University", "About", "Search", "Cart"].map((item) => (
+           {["Collections", "Drops", "About", "Search", "Cart"].map((item) => (
               <Link key={item} href={`/${item === "Collections" ? "collections" : item.toLowerCase()}`} onClick={() => setOpen(false)}>
                 {item}
               </Link>
@@ -221,7 +218,7 @@ function Hero() {
             </span>
           ))}
         </h1>
-        <p className="mt-7 font-mono text-xs uppercase tracking-[0.28em] text-woven-muted">University Edition / SS25</p>
+        
         <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
           <a href="#collections-strip" className={buttonClasses("primary")}>
             Explore Collections
@@ -350,22 +347,7 @@ function Countdown() {
   );
 }
 
-function UniversityBanner() {
-  return (
-    <section id="university-strip" className="bg-woven-text px-5 py-20 text-woven-inverse md:px-10">
-      <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1fr_auto] md:items-center">
-        <div>
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-woven-accent">University Program</p>
-          <h2 className="mt-3 font-display text-6xl leading-tight md:text-7xl">15% Off. Always. For Students.</h2>
-          <p className="mt-4 max-w-xl font-body text-md text-woven-inverse/70">Verify with your university email and keep the discount ready in your cart.</p>
-        </div>
-        <Link href="/university" className={buttonClasses("inverse")}>
-          Verify Student Status
-        </Link>
-      </div>
-    </section>
-  );
-}
+// University discount banner removed.
 
 function BrandStory() {
   return (
@@ -398,7 +380,6 @@ export function Footer({ collections = fallbackCatalog.collections }: { collecti
           title="Info"
           links={[
             ["About", "/about"],
-            ["University", "/university"],
             ["Returns", "/legal/returns"],
             ["Careers", "/about"],
           ]}
@@ -409,7 +390,7 @@ export function Footer({ collections = fallbackCatalog.collections }: { collecti
             <input
               type="email"
               aria-label="Email address"
-              placeholder="student@university.edu"
+              placeholder="you@example.com"
               className="min-w-0 flex-1 bg-transparent px-4 py-3 font-body text-sm outline-none placeholder:text-woven-inverse/35"
             />
             <button type="submit" className="bg-woven-accent px-4 font-mono text-2xs uppercase tracking-[0.18em] text-woven-text">
@@ -456,7 +437,7 @@ export function HomeExperience({ catalog = fallbackCatalog }: { catalog?: Catalo
         {collections.map((collection) => (
           <CollectionSection key={collection.slug} collection={collection} />
         ))}
-        <UniversityBanner />
+        
         <BrandStory />
       </main>
       <Footer collections={collections} />
@@ -721,14 +702,15 @@ export function SimpleContentPage({
                   <span>Subtotal</span>
                   <span>PKR {subtotal.toLocaleString("en-US")}</span>
                 </div>
-                <div className="mt-3 flex justify-between font-body text-woven-accent">
-                  <span>Student discount</span>
-                  <span>-15%</span>
-                </div>
+                
                 <Link href="/checkout/delivery" className={`${buttonClasses("primary")} mt-6 w-full`}>
                   Continue
                 </Link>
               </aside>
+            </div>
+          ) : type === "university" ? (
+            <div className="mt-12">
+              <BrandStory />
             </div>
           ) : (
             <div className="mt-12 grid gap-6 md:grid-cols-3">
