@@ -1,8 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { fallbackCatalog, type CatalogData, type Collection, type Product } from "@/lib/woven-data";
+import { useMemo, useState } from "react";
+import {
+  fallbackCatalog,
+  type CatalogData,
+  type Collection,
+  type Product,
+  type Theme,
+  type ThemeId,
+} from "@/lib/woven-data";
 
 type CartLine = {
   slug: string;
@@ -23,20 +30,42 @@ const logoPositions: Record<number, string> = {
   9: "100% 100%",
 };
 
+const themeHref: Record<ThemeId, string> = {
+  classic: "/themes/classic",
+  summer: "/themes/summer",
+  winter: "/themes/winter",
+};
+
 function priceToNumber(price: string) {
   return Number(price.replace(/[^0-9]/g, ""));
 }
 
+function getTheme(catalog: CatalogData, themeId: ThemeId) {
+  return catalog.themes.find((theme) => theme.id === themeId) ?? fallbackCatalog.themes[0];
+}
+
+function getThemeCollections(catalog: CatalogData, themeId: ThemeId) {
+  return catalog.collections.filter((collection) => collection.theme === themeId);
+}
+
+function getThemeProducts(catalog: CatalogData, themeId: ThemeId) {
+  return catalog.products.filter((product) => product.theme === themeId);
+}
+
 function buttonClasses(variant: "primary" | "ghost" | "inverse" = "primary") {
-  if (variant === "ghost") {
-    return "button-base button-ghost";
-  }
-
-  if (variant === "inverse") {
-    return "button-base button-inverse";
-  }
-
+  if (variant === "ghost") return "button-base button-ghost";
+  if (variant === "inverse") return "button-base button-inverse";
   return "button-base button-primary";
+}
+
+function storageImageUrl(path?: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  if (!path || !supabaseUrl) {
+    return "";
+  }
+
+  return `${supabaseUrl.replace(/\/$/, "")}/storage/v1/object/public/product-images/${path}`;
 }
 
 export function LogoMark({
@@ -58,18 +87,27 @@ export function LogoMark({
 }
 
 export function ProductArtwork({ product, tall = false }: { product: Product; tall?: boolean }) {
+  const imageUrl = storageImageUrl(product.imagePath);
+  const [imageFailed, setImageFailed] = useState(false);
+
   return (
-    <div
-      className={`product-art relative overflow-hidden bg-gradient-to-br ${product.palette} ${
-        tall ? "aspect-[3/5]" : "aspect-product"
-      }`}
-    >
-      <div className="absolute inset-x-[18%] bottom-[12%] top-[12%] border border-woven-inverse/45 bg-woven-inverse/10 backdrop-blur-[1px]" />
-      <div className="absolute left-1/2 top-[18%] h-[46%] w-[38%] -translate-x-1/2 rounded-t-[42%] border border-current/20 bg-current/10" />
-      <div className="absolute bottom-[18%] left-1/2 h-[30%] w-[52%] -translate-x-1/2 border border-current/20 bg-current/10" />
-      <span className="absolute left-4 top-4 font-mono text-2xs uppercase tracking-[0.18em] opacity-70">
-        {product.id}
-      </span>
+    <div className={`product-art relative overflow-hidden bg-gradient-to-br ${product.palette} ${tall ? "aspect-[3/5]" : "aspect-product"}`}>
+      {imageUrl && !imageFailed ? (
+        <img
+          src={imageUrl}
+          alt={product.imageAlt}
+          className="h-full w-full object-cover"
+          loading="lazy"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <>
+          <div className="absolute inset-x-[18%] bottom-[12%] top-[12%] border border-white/45 bg-white/15 backdrop-blur-[1px]" />
+          <div className="absolute left-1/2 top-[18%] h-[46%] w-[38%] -translate-x-1/2 rounded-t-[42%] border border-current/20 bg-current/10" />
+          <div className="absolute bottom-[18%] left-1/2 h-[30%] w-[52%] -translate-x-1/2 border border-current/20 bg-current/10" />
+        </>
+      )}
+      <span className="absolute left-4 top-4 font-mono text-2xs uppercase tracking-[0.18em] opacity-70">{product.id}</span>
       {product.status && (
         <span className="absolute right-4 top-4 bg-woven-text px-2 py-1 font-mono text-2xs uppercase tracking-[0.16em] text-woven-inverse">
           {product.status}
@@ -79,31 +117,14 @@ export function ProductArtwork({ product, tall = false }: { product: Product; ta
   );
 }
 
-export function ProductCard({
-  product,
-  collection,
-  overlay = false,
-}: {
-  product: Product;
-  collection?: Collection;
-  overlay?: boolean;
-}) {
+export function ProductCard({ product, collection }: { product: Product; collection?: Collection }) {
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const fontClass = collection?.fontClass ?? "font-display";
-  const isDark = collection?.slug === "digital-weave" || collection?.slug === "glitch-drop";
 
   return (
-    <article
-      className={`group overflow-hidden rounded-card border transition duration-hover ease-woven hover:-translate-y-1 ${
-        isDark
-          ? "border-woven-inverse/15 bg-woven-inverse/5 hover:border-woven-cyan"
-          : overlay
-            ? "border-woven-inverse/20 bg-woven-text text-woven-inverse"
-            : "border-woven-border bg-woven-bg"
-      }`}
-    >
+    <article className="group overflow-hidden rounded-card border border-current/15 bg-white/60 text-current shadow-sm backdrop-blur transition duration-hover ease-woven hover:-translate-y-1 hover:border-woven-accent">
       <Link href={`/products/${product.slug}`} className="block focus:outline-none focus:ring-2 focus:ring-woven-accent">
-        <ProductArtwork product={product} tall={overlay} />
+        <ProductArtwork product={product} />
       </Link>
       <div className="space-y-4 p-4">
         <div className="flex items-start justify-between gap-4">
@@ -113,11 +134,7 @@ export function ProductCard({
             </Link>
             <p className="mt-1 font-mono text-xs uppercase tracking-[0.14em] opacity-70">{product.price}</p>
           </div>
-          <button
-            type="button"
-            aria-label={`Save ${product.name} to wishlist`}
-            className="grid h-11 w-11 place-items-center rounded-btn border border-current/20 text-lg transition duration-hover hover:scale-105 hover:border-woven-accent hover:text-woven-accent"
-          >
+          <button type="button" aria-label={`Save ${product.name}`} className="grid h-11 w-11 place-items-center border border-current/20 text-xs uppercase transition hover:border-woven-accent hover:text-woven-accent">
             Save
           </button>
         </div>
@@ -127,17 +144,15 @@ export function ProductCard({
               key={size}
               type="button"
               onClick={() => setSelectedSize(size)}
-              className={`grid h-10 min-w-10 place-items-center border px-3 font-mono text-2xs uppercase transition duration-hover ${
-                selectedSize === size
-                  ? "border-current bg-current text-woven-bg"
-                  : "border-current/25 hover:border-current"
+              className={`grid h-10 min-w-10 place-items-center border px-3 font-mono text-2xs uppercase transition ${
+                selectedSize === size ? "border-current bg-current text-white" : "border-current/25 hover:border-current"
               }`}
             >
               {size}
             </button>
           ))}
         </div>
-        <button type="button" className={buttonClasses(isDark || overlay ? "inverse" : "primary")}>
+        <button type="button" className={buttonClasses("primary")}>
           {product.status === "Notify Me" ? "Notify Me" : "Quick Add"}
         </button>
       </div>
@@ -145,108 +160,130 @@ export function ProductCard({
   );
 }
 
-function Navigation({ cartCount }: { cartCount: number }) {
-  const [open, setOpen] = useState(false);
-
+function ThemeRipple({ ripple }: { ripple: { x: number; y: number; theme: ThemeId } | null }) {
+  if (!ripple) return null;
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-woven-border bg-woven-bg/92 backdrop-blur-nav">
-      <nav className="mx-auto flex h-[60px] max-w-7xl items-center justify-between px-5 md:h-[72px] md:px-10">
-        <Link href="/" className="font-display text-2xl font-medium tracking-[0.18em] text-woven-text">
-          WOVEN
-        </Link>
-        <div className="hidden items-center gap-8 font-body text-xs uppercase tracking-[0.16em] text-woven-text md:flex">
-          <Link href="/collections" className="nav-link">
-            Collections
-          </Link>
-          <Link href="/drops" className="nav-link">
-            Drops
-          </Link>
-          <Link href="/about" className="nav-link">
-            About
-          </Link>
-        </div>
-        <div className="hidden items-center gap-3 md:flex">
-          <Link href="/search" aria-label="Search" className="icon-button">
-            Search
-          </Link>
-          <Link href="/account/wishlist" aria-label="Wishlist" className="icon-button">
-            Save
-          </Link>
-          <Link href="/cart" aria-label="Cart" className="icon-button relative">
-            Bag
-            <span className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center bg-woven-accent px-1 font-mono text-2xs text-woven-text">
-              {cartCount}
-            </span>
-          </Link>
-        </div>
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-label="Open menu"
-          onClick={() => setOpen((value) => !value)}
-          className="grid h-11 w-11 place-items-center border border-woven-border md:hidden"
-        >
-          <span className="h-px w-5 bg-woven-text shadow-[0_6px_0_#111111,0_-6px_0_#111111]" />
-        </button>
-      </nav>
-      {open && (
-        <div className="border-t border-woven-border bg-woven-bg p-5 md:hidden">
-          <div className="grid gap-3 font-body text-lg uppercase tracking-[0.16em]">
-           {["Collections", "Drops", "About", "Search", "Cart"].map((item) => (
-              <Link key={item} href={`/${item === "Collections" ? "collections" : item.toLowerCase()}`} onClick={() => setOpen(false)}>
-                {item}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-    </header>
+    <span
+      key={`${ripple.theme}-${ripple.x}-${ripple.y}`}
+      className={`theme-ripple theme-ripple-${ripple.theme}`}
+      style={{ left: ripple.x, top: ripple.y }}
+      aria-hidden="true"
+    />
   );
 }
 
-function Hero() {
-  const letters = "Ideas Stitched Into Reality".split("");
+function ThemeSwitcher({
+  themes,
+  activeTheme,
+  onThemeClick,
+}: {
+  themes: Theme[];
+  activeTheme: Theme;
+  onThemeClick: (event: React.MouseEvent<HTMLAnchorElement>, themeId: ThemeId) => void;
+}) {
+  return (
+    <div className="theme-switcher" aria-label="Theme switcher">
+      {themes.map((theme) => (
+        <Link
+          key={theme.id}
+          href={themeHref[theme.id]}
+          onClick={(event) => onThemeClick(event, theme.id)}
+          aria-current={theme.id === activeTheme.id ? "page" : undefined}
+          className={`theme-switcher-link ${theme.id === activeTheme.id ? "is-active" : ""}`}
+        >
+          {theme.label}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function Navigation({ catalog, activeTheme, cartCount }: { catalog: CatalogData; activeTheme: Theme; cartCount: number }) {
+  const [open, setOpen] = useState(false);
+  const [ripple, setRipple] = useState<{ x: number; y: number; theme: ThemeId } | null>(null);
+
+  function handleThemeClick(event: React.MouseEvent<HTMLAnchorElement>, themeId: ThemeId) {
+    setRipple({ x: event.clientX, y: event.clientY, theme: themeId });
+    window.setTimeout(() => setRipple(null), 900);
+  }
 
   return (
-    <section id="hero" className="grain relative flex min-h-screen items-center justify-center overflow-hidden bg-woven-bg px-5 pt-[72px] text-center text-woven-text">
-      <div className="mx-auto max-w-5xl">
-        <LogoMark logo={5} size="h-24 w-24" className="mb-9" />
-        <h1 className="mx-auto max-w-6xl font-display text-7xl font-light leading-none md:text-9xl">
-          {letters.map((letter, index) => (
-            <span key={`${letter}-${index}`} className="hero-letter inline-block" style={{ animationDelay: `${index * 30}ms` }}>
-              {letter === " " ? "\u00A0" : letter}
-            </span>
-          ))}
-        </h1>
-        
-        <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-          <a href="#collections-strip" className={buttonClasses("primary")}>
-            Explore Collections
-          </a>
-          <Link href="/drops" className={buttonClasses("ghost")}>
-            New Drop
+    <>
+      <header className={`fixed inset-x-0 top-0 z-50 border-b backdrop-blur-nav ${activeTheme.navClass}`}>
+        <nav className="mx-auto flex min-h-[60px] max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-2 md:min-h-[72px] md:px-10">
+          <Link href={themeHref[activeTheme.id]} className={`font-display text-2xl font-medium tracking-[0.18em] ${activeTheme.navTextClass}`}>
+            WOVEN
           </Link>
+          <div className={`hidden items-center gap-8 font-body text-xs uppercase tracking-[0.16em] md:flex ${activeTheme.navTextClass}`}>
+            <Link href="/collections" className="nav-link">Collections</Link>
+            <Link href="/drops" className="nav-link">Drops</Link>
+            <Link href="/about" className="nav-link">About</Link>
+          </div>
+          <div className="hidden items-center gap-3 md:flex">
+            <ThemeSwitcher themes={catalog.themes} activeTheme={activeTheme} onThemeClick={handleThemeClick} />
+            <Link href="/search" className="icon-button">Search</Link>
+            <Link href="/cart" className="icon-button relative">
+              Bag
+              <span className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center bg-woven-accent px-1 font-mono text-2xs text-woven-text">{cartCount}</span>
+            </Link>
+          </div>
+          <button type="button" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen((value) => !value)} className="grid h-11 w-11 place-items-center border border-current md:hidden">
+            Menu
+          </button>
+        </nav>
+        {open && (
+          <div className="border-t border-current/15 bg-white p-5 text-black md:hidden">
+            <ThemeSwitcher themes={catalog.themes} activeTheme={activeTheme} onThemeClick={handleThemeClick} />
+            <div className="mt-5 grid gap-3 font-body text-lg uppercase tracking-[0.16em]">
+              {["Collections", "Drops", "About", "Search", "Cart"].map((item) => (
+                <Link key={item} href={`/${item === "Collections" ? "collections" : item.toLowerCase()}`} onClick={() => setOpen(false)}>
+                  {item}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </header>
+      <ThemeRipple ripple={ripple} />
+    </>
+  );
+}
+
+function Hero({ theme }: { theme: Theme }) {
+  return (
+    <section id="hero" className={`hero-${theme.heroMedia} relative flex min-h-screen items-center justify-center overflow-hidden px-5 pt-[72px] text-center`}>
+      <div className="hero-media" aria-hidden="true">
+        {theme.heroMedia === "summer" && (
+          <video className="hero-video" autoPlay muted loop playsInline poster="">
+            <source src="/videos/themes/summer/hero.mp4" type="video/mp4" />
+          </video>
+        )}
+        {theme.heroMedia === "winter" && (
+          <video className="hero-video" autoPlay muted loop playsInline poster="">
+            <source src="/videos/themes/winter/hero.mp4" type="video/mp4" />
+          </video>
+        )}
+        {theme.heroMedia === "summer" && <div className="summer-sky"><span /><span /><span /></div>}
+        {theme.heroMedia === "winter" && <div className="snowfall">{Array.from({ length: 34 }).map((_, index) => <i key={index} />)}</div>}
+      </div>
+      <div className="relative z-10 mx-auto max-w-5xl">
+        <h1 className="font-display text-7xl font-light leading-none md:text-11xl">{theme.heroTitle}</h1>
+        <p className="mx-auto mt-6 max-w-2xl font-body text-lg leading-relaxed md:text-2xl">{theme.tagline}</p>
+        <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+          <a href="#collections-strip" className={buttonClasses(theme.id === "winter" ? "ghost" : "primary")}>Explore Collections</a>
+          <Link href="/collections" className={buttonClasses("ghost")}>All Themes</Link>
         </div>
       </div>
-      <a href="#collections-strip" aria-label="Scroll to collections" className="absolute bottom-8 left-1/2 h-20 w-px -translate-x-1/2 overflow-hidden bg-woven-border">
-        <span className="thread-line block h-10 w-px bg-woven-accent" />
-      </a>
     </section>
   );
 }
 
-function CollectionsStrip({ collections }: { collections: Collection[] }) {
+function CollectionsStrip({ collections, theme }: { collections: Collection[]; theme: Theme }) {
   return (
-    <section id="collections-strip" className="sticky top-[60px] z-40 border-y border-woven-border bg-woven-bg/95 py-3 backdrop-blur-nav md:top-[72px]">
-      <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-5 md:px-10">
-        {collections.map((collection, index) => (
-          <a
-            key={collection.slug}
-            href={`#${collection.slug}`}
-            className={`shrink-0 border px-4 py-2 font-mono text-2xs uppercase tracking-[0.16em] transition duration-hover hover:bg-woven-text hover:text-woven-inverse ${
-              index === 0 ? "border-woven-text bg-woven-text text-woven-inverse" : "border-woven-border text-woven-text"
-            }`}
-          >
+    <section id="collections-strip" className={`sticky top-[60px] z-40 border-y py-3 backdrop-blur-nav md:top-[72px] ${theme.stripClass}`}>
+      <div className="marquee-track">
+        {[...collections, ...collections].map((collection, index) => (
+          <a key={`${collection.slug}-${index}`} href={`#${collection.slug}`} className={`marquee-pill ${theme.stripTextClass}`}>
             {collection.title}
           </a>
         ))}
@@ -256,118 +293,52 @@ function CollectionsStrip({ collections }: { collections: Collection[] }) {
 }
 
 function CollectionSection({ collection }: { collection: Collection }) {
-  const isDark = collection.slug === "digital-weave" || collection.slug === "glitch-drop";
-  const isStreet = collection.slug === "street-stitch";
-  const isGlitch = collection.slug === "glitch-drop";
-  const gridClass =
-    collection.slug === "minimal-edit"
-      ? "grid-cols-1 md:grid-cols-3"
-      : collection.slug === "digital-weave"
-        ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-        : collection.slug === "society"
-          ? "grid-cols-1 md:grid-cols-2"
-          : "grid-cols-1 md:grid-cols-2";
+  const gridClass = collection.products.length > 2 ? "sm:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-2";
 
   return (
-    <section
-      id={collection.slug}
-      data-collection={collection.slug}
-      className={`relative overflow-hidden px-5 py-24 md:px-10 md:py-32 ${collection.bgClass} ${collection.textClass} ${
-        collection.slug === "digital-weave" ? "scanlines" : ""
-      } ${collection.slug === "society" ? "paper" : ""}`}
-    >
+    <section id={collection.slug} className={`relative overflow-hidden px-5 py-24 md:px-10 md:py-32 ${collection.bgClass} ${collection.textClass}`}>
       <div className="mx-auto max-w-7xl">
-        <div className={`mb-14 grid gap-8 ${collection.slug === "minimal-edit" || collection.slug === "society" ? "place-items-center text-center" : "lg:grid-cols-[220px_1fr] lg:items-end"}`}>
+        <div className="mb-14 grid gap-8 lg:grid-cols-[180px_1fr] lg:items-end">
           <div className="space-y-5">
-            <p className={`font-mono text-xs uppercase tracking-[0.24em] ${isGlitch ? "text-woven-magenta" : isDark ? "text-woven-cyan" : "text-woven-accent"}`}>
-              {collection.number}
-            </p>
-            <LogoMark logo={collection.logo} size={collection.slug === "street-stitch" ? "h-36 w-56" : "h-28 w-28"} className={isGlitch ? "glitch-logo" : ""} />
+            <p className="font-mono text-xs uppercase tracking-[0.24em] text-woven-accent">{collection.number}</p>
+            <LogoMark logo={collection.logo} size="h-28 w-28" />
           </div>
           <div className="space-y-5">
-            {isStreet && <div className="barcode" aria-hidden="true" />}
-            <h2
-              className={`${collection.fontClass} ${
-                isStreet ? "text-10xl md:text-11xl" : isGlitch ? "glitch-title text-8xl md:text-10xl" : "text-7xl md:text-9xl"
-              } leading-none`}
-              data-text={collection.displayTitle}
-            >
-              {collection.displayTitle}
-            </h2>
-            <p className={`max-w-2xl font-body text-md leading-relaxed ${isDark ? "text-woven-inverse/65" : "text-woven-muted"}`}>
+            <h2 className={`${collection.fontClass} text-7xl leading-none md:text-10xl`}>{collection.displayTitle}</h2>
+            <p className="max-w-2xl font-body text-md leading-relaxed opacity-75">
               <span className="font-mono text-xs uppercase tracking-[0.18em]">{collection.tagline}</span>
               <br />
               {collection.mood}
             </p>
           </div>
         </div>
-        {isGlitch && <Countdown />}
         <div className={`grid gap-5 ${gridClass}`}>
-          {collection.products.map((product, index) => (
-            <div key={product.id} className={collection.slug === "minimal-edit" && index === 0 ? "md:col-span-2" : ""}>
-              <ProductCard product={product} collection={collection} overlay={isStreet} />
-            </div>
-          ))}
+          {collection.products.map((product) => <ProductCard key={product.id} product={product} collection={collection} />)}
         </div>
         <div className="mt-12">
-          <Link href={`/collections/${collection.slug}`} className={buttonClasses(isDark ? "inverse" : "ghost")}>
-            View Full Collection
-          </Link>
+          <Link href={`/collections/${collection.slug}`} className={buttonClasses("ghost")}>View Full Collection</Link>
         </div>
       </div>
     </section>
   );
 }
 
-function Countdown() {
-  const target = useMemo(() => new Date("2026-06-15T17:00:00+05:00").getTime(), []);
-  const [now, setNow] = useState(0);
-
-  useEffect(() => {
-    const initialTimer = window.setTimeout(() => setNow(Date.now()), 0);
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => {
-      window.clearTimeout(initialTimer);
-      window.clearInterval(timer);
-    };
-  }, []);
-
-  const remaining = now > 0 ? Math.max(target - now, 0) : 0;
-  const days = Math.floor(remaining / 86_400_000);
-  const hours = Math.floor((remaining / 3_600_000) % 24);
-  const minutes = Math.floor((remaining / 60_000) % 60);
-  const seconds = Math.floor((remaining / 1_000) % 60);
-  const parts = now > 0 ? [days, hours, minutes, seconds].map((part) => String(part).padStart(2, "0")) : ["--", "--", "--", "--"];
-
+function BrandStory({ theme }: { theme: Theme }) {
   return (
-    <div className="mb-10 border border-woven-cyan/30 p-5 text-center">
-      <p className="font-mono text-2xs uppercase tracking-[0.24em] text-woven-magenta">Drop in</p>
-      <p className="mt-2 font-ibm text-5xl tabular-nums text-woven-cyan">{parts.join(" : ")}</p>
-    </div>
-  );
-}
-
-// University discount banner removed.
-
-function BrandStory() {
-  return (
-    <section id="brand-story" className="bg-woven-bg px-5 py-24 text-woven-text md:px-10">
+    <section id="brand-story" className="px-5 py-24 md:px-10">
       <div className="mx-auto max-w-4xl">
-        <p className="font-display text-6xl italic leading-tight">
-          &quot;We do not just make clothes. We make the uniform of curiosity.&quot;
+        <p className="font-display text-6xl italic leading-tight">"Clothes with a point of view, made for real days."</p>
+        <p className="mt-8 max-w-2xl font-body text-md leading-relaxed opacity-70">
+          Woven builds theme-led clothing worlds for everyday dressing, from refined classics to warm-weather ease and cold-weather layers.
         </p>
-        <p className="mt-8 max-w-2xl font-body text-md leading-relaxed text-woven-muted">
-          Woven is built for university life: presentations, studio nights, society rooms, underpass meetups, and the small rituals that make a semester feel like yours.
-        </p>
-        <Link href="/about" className={`${buttonClasses("ghost")} mt-8`}>
-          Read Our Story
-        </Link>
+        <p className="mt-4 font-mono text-2xs uppercase tracking-[0.18em] opacity-60">Active theme: {theme.label} / Accent: {theme.accentName}</p>
       </div>
     </section>
   );
 }
 
-export function Footer({ collections = fallbackCatalog.collections }: { collections?: Collection[] }) {
+export function Footer({ catalog = fallbackCatalog, activeThemeId = "classic" }: { catalog?: CatalogData; activeThemeId?: ThemeId }) {
+  const collections = getThemeCollections(catalog, activeThemeId);
   return (
     <footer id="newsletter" className="bg-woven-text px-5 py-20 text-woven-inverse md:px-10">
       <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-[1.2fr_0.8fr_0.8fr_1fr]">
@@ -375,33 +346,15 @@ export function Footer({ collections = fallbackCatalog.collections }: { collecti
           <p className="font-display text-4xl italic tracking-[0.1em]">WOVEN</p>
           <p className="mt-3 max-w-xs font-body text-sm text-woven-inverse/65">Ideas Stitched Into Reality.</p>
         </div>
+        <FooterColumn title="Themes" links={catalog.themes.map((theme) => [theme.label, themeHref[theme.id]])} />
         <FooterColumn title="Collections" links={collections.map((collection) => [collection.title, `/collections/${collection.slug}`])} />
-        <FooterColumn
-          title="Info"
-          links={[
-            ["About", "/about"],
-            ["Returns", "/legal/returns"],
-            ["Careers", "/about"],
-          ]}
-        />
         <div>
           <p className="font-display text-5xl italic">Stay In The Loop</p>
           <form className="mt-5 flex border border-woven-inverse/25" onSubmit={(event) => event.preventDefault()}>
-            <input
-              type="email"
-              aria-label="Email address"
-              placeholder="you@example.com"
-              className="min-w-0 flex-1 bg-transparent px-4 py-3 font-body text-sm outline-none placeholder:text-woven-inverse/35"
-            />
-            <button type="submit" className="bg-woven-accent px-4 font-mono text-2xs uppercase tracking-[0.18em] text-woven-text">
-              Stitch In
-            </button>
+            <input type="email" aria-label="Email address" placeholder="you@example.com" className="min-w-0 flex-1 bg-transparent px-4 py-3 font-body text-sm outline-none placeholder:text-woven-inverse/35" />
+            <button type="submit" className="bg-woven-accent px-4 font-mono text-2xs uppercase tracking-[0.18em] text-woven-text">Join</button>
           </form>
-          <p className="mt-3 font-body text-xs text-woven-inverse/55">No spam. Drop alerts and early access only.</p>
         </div>
-      </div>
-      <div className="mx-auto mt-14 max-w-7xl border-t border-woven-inverse/15 pt-6 font-mono text-2xs uppercase tracking-[0.18em] text-woven-inverse/50">
-        (c) 2025 Woven. All rights reserved.
       </div>
     </footer>
   );
@@ -412,240 +365,172 @@ function FooterColumn({ title, links }: { title: string; links: [string, string]
     <div>
       <p className="font-mono text-2xs uppercase tracking-[0.22em] text-woven-accent">{title}</p>
       <div className="mt-4 grid gap-3 font-body text-sm text-woven-inverse/70">
-        {links.map(([label, href]) => (
-          <Link key={href} href={href} className="hover:text-woven-accent">
-            {label}
-          </Link>
-        ))}
+        {links.map(([label, href]) => <Link key={href} href={href} className="hover:text-woven-accent">{label}</Link>)}
       </div>
     </div>
   );
 }
 
-export function HomeExperience({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
-  const { collections, products } = catalog;
-  const [cartLines] = useState<CartLine[]>([
-    { slug: products[0].slug, name: products[0].name, price: products[0].price, size: "M" },
-  ]);
+export function ThemeExperience({ catalog = fallbackCatalog, themeId = "classic" }: { catalog?: CatalogData; themeId?: ThemeId }) {
+  const activeTheme = getTheme(catalog, themeId);
+  const collections = getThemeCollections(catalog, activeTheme.id);
+  const products = getThemeProducts(catalog, activeTheme.id);
+  const [cartLines] = useState<CartLine[]>(products[0] ? [{ slug: products[0].slug, name: products[0].name, price: products[0].price, size: "M" }] : []);
 
   return (
-    <>
-      <Navigation cartCount={cartLines.length} />
+    <div className={activeTheme.pageClass} data-theme={activeTheme.id}>
+      <Navigation catalog={catalog} activeTheme={activeTheme} cartCount={cartLines.length} />
       <main>
-        <Hero />
-        <CollectionsStrip collections={collections} />
-        {collections.map((collection) => (
-          <CollectionSection key={collection.slug} collection={collection} />
-        ))}
-        
-        <BrandStory />
+        <Hero theme={activeTheme} />
+        <CollectionsStrip collections={collections} theme={activeTheme} />
+        {collections.map((collection) => <CollectionSection key={collection.slug} collection={collection} />)}
+        <BrandStory theme={activeTheme} />
       </main>
-      <Footer collections={collections} />
-    </>
+      <Footer catalog={catalog} activeThemeId={activeTheme.id} />
+    </div>
   );
 }
+
+export const HomeExperience = ThemeExperience;
 
 export function CollectionIndexPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
-  const { collections } = catalog;
-
   return (
     <>
-      <Navigation cartCount={1} />
+      <Navigation catalog={catalog} activeTheme={getTheme(catalog, "classic")} cartCount={1} />
       <main className="bg-woven-bg px-5 pb-24 pt-32 text-woven-text md:px-10">
         <div className="mx-auto max-w-7xl">
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-woven-accent">All Collections</p>
-          <h1 className="mt-4 font-display text-7xl leading-none md:text-10xl">Choose Your Campus Uniform.</h1>
-          <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {collections.map((collection) => (
-              <Link
-                key={collection.slug}
-                href={`/collections/${collection.slug}`}
-                className={`${collection.bgClass} ${collection.textClass} min-h-80 rounded-card border border-woven-border p-6 transition duration-hover hover:-translate-y-1`}
-              >
-                <LogoMark logo={collection.logo} />
-                <p className="mt-8 font-mono text-2xs uppercase tracking-[0.18em] opacity-65">{collection.number}</p>
-                <h2 className={`${collection.fontClass} mt-2 text-6xl leading-none`}>{collection.displayTitle}</h2>
-                <p className="mt-4 font-body text-sm opacity-70">{collection.mood}</p>
-              </Link>
-            ))}
-          </div>
+          <p className="font-mono text-xs uppercase tracking-[0.22em] text-woven-accent">All Theme Collections</p>
+          <h1 className="mt-4 font-display text-7xl leading-none md:text-10xl">Choose A Woven World.</h1>
+          {catalog.themes.map((theme) => (
+            <section key={theme.id} className="mt-14">
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <h2 className="font-display text-5xl">{theme.label}</h2>
+                  <p className="mt-2 max-w-2xl opacity-70">{theme.tagline}</p>
+                </div>
+                <Link href={themeHref[theme.id]} className={buttonClasses("ghost")}>Open Theme</Link>
+              </div>
+              <div className="mt-6 grid gap-5 md:grid-cols-3">
+                {getThemeCollections(catalog, theme.id).map((collection) => (
+                  <Link key={collection.slug} href={`/collections/${collection.slug}`} className={`${collection.bgClass} ${collection.textClass} min-h-72 rounded-card border border-current/15 p-6 transition hover:-translate-y-1`}>
+                    <LogoMark logo={collection.logo} />
+                    <p className="mt-8 font-mono text-2xs uppercase tracking-[0.18em] opacity-65">{collection.number}</p>
+                    <h3 className={`${collection.fontClass} mt-2 text-5xl leading-none`}>{collection.displayTitle}</h3>
+                    <p className="mt-4 font-body text-sm opacity-70">{collection.mood}</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ))}
         </div>
       </main>
-      <Footer collections={collections} />
+      <Footer catalog={catalog} />
     </>
   );
 }
 
-export function CollectionDetailPage({ collection }: { collection: Collection }) {
+export function CollectionDetailPage({ catalog = fallbackCatalog, collection }: { catalog?: CatalogData; collection: Collection }) {
+  const activeTheme = getTheme(catalog, collection.theme);
   return (
-    <>
-      <Navigation cartCount={1} />
+    <div className={activeTheme.pageClass}>
+      <Navigation catalog={catalog} activeTheme={activeTheme} cartCount={1} />
       <main className={`${collection.bgClass} ${collection.textClass} pt-[72px]`}>
         <section className="px-5 py-24 md:px-10">
           <div className="mx-auto max-w-7xl">
             <LogoMark logo={collection.logo} size="h-32 w-32" />
-            <p className="mt-8 font-mono text-xs uppercase tracking-[0.22em] opacity-70">{collection.tagline}</p>
+            <p className="mt-8 font-mono text-xs uppercase tracking-[0.22em] opacity-70">{activeTheme.label} / {collection.tagline}</p>
             <h1 className={`${collection.fontClass} mt-4 text-8xl leading-none md:text-11xl`}>{collection.displayTitle}</h1>
             <p className="mt-6 max-w-2xl font-body text-md opacity-70">{collection.mood}</p>
           </div>
         </section>
-        <section className="border-y border-current/10 px-5 py-4 md:px-10">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 font-mono text-2xs uppercase tracking-[0.16em]">
-            <div className="flex flex-wrap gap-2">
-              {["Size", "Color", "Price", "Type"].map((filter) => (
-                <button key={filter} type="button" className="border border-current/20 px-3 py-2 hover:border-current">
-                  {filter}
-                </button>
-              ))}
-            </div>
-            <button type="button" className="border border-current/20 px-3 py-2 hover:border-current">
-              Sort: Newest
-            </button>
-          </div>
-        </section>
         <section className="px-5 py-16 md:px-10">
           <div className="mx-auto grid max-w-7xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {collection.products.map((product) => (
-              <ProductCard key={product.id} product={product} collection={collection} />
-            ))}
+            {collection.products.map((product) => <ProductCard key={product.id} product={product} collection={collection} />)}
           </div>
         </section>
       </main>
-      <Footer />
-    </>
+      <Footer catalog={catalog} activeThemeId={collection.theme} />
+    </div>
   );
 }
 
-export function ProductDetailPage({ product, collection }: { product: Product; collection: Collection }) {
+export function ProductDetailPage({ catalog = fallbackCatalog, product, collection }: { catalog?: CatalogData; product: Product; collection: Collection }) {
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [added, setAdded] = useState(false);
+  const activeTheme = getTheme(catalog, product.theme);
 
   return (
-    <>
-      <Navigation cartCount={added ? 2 : 1} />
-      <main className="bg-woven-bg px-5 pb-24 pt-32 text-woven-text md:px-10">
+    <div className={activeTheme.pageClass}>
+      <Navigation catalog={catalog} activeTheme={activeTheme} cartCount={added ? 2 : 1} />
+      <main className="px-5 pb-24 pt-32 md:px-10">
         <div className="mx-auto max-w-7xl">
-          <div className="font-mono text-2xs uppercase tracking-[0.16em] text-woven-muted">
-            <Link href="/">Home</Link> / <Link href={`/collections/${collection.slug}`}>{collection.title}</Link> / {product.name}
+          <div className="font-mono text-2xs uppercase tracking-[0.16em] opacity-60">
+            <Link href={themeHref[activeTheme.id]}>{activeTheme.label}</Link> / <Link href={`/collections/${collection.slug}`}>{collection.title}</Link> / {product.name}
           </div>
           <div className="mt-8 grid gap-12 lg:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
-            <div className="grid gap-4 sm:grid-cols-[80px_1fr]">
-              <div className="hidden gap-3 sm:grid">
-                {[0, 1, 2].map((item) => (
-                  <div key={item} className="aspect-product border border-woven-border bg-woven-surface" />
-                ))}
-              </div>
-              <div className="sticky top-28">
-                <ProductArtwork product={product} tall />
-              </div>
-            </div>
+            <ProductArtwork product={product} tall />
             <aside className="space-y-7">
-              <span className="inline-flex border border-woven-border px-3 py-2 font-mono text-2xs uppercase tracking-[0.16em]">{collection.title}</span>
+              <span className="inline-flex border border-current/20 px-3 py-2 font-mono text-2xs uppercase tracking-[0.16em]">{collection.title}</span>
               <div>
                 <h1 className={`${collection.fontClass} text-7xl leading-none`}>{product.name}</h1>
                 <p className="mt-4 font-mono text-2xl">{product.price}</p>
               </div>
-              <p className="font-body text-md leading-relaxed text-woven-muted">{product.description}</p>
-              <div>
-                <div className="mb-3 flex items-center justify-between font-mono text-2xs uppercase tracking-[0.16em]">
-                  <span>Size</span>
-                  <button type="button" className="underline">
-                    Size Guide
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size) => (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => setSelectedSize(size)}
-                      className={`grid h-11 min-w-11 place-items-center border px-3 font-mono text-xs ${
-                        selectedSize === size ? "border-woven-text bg-woven-text text-woven-inverse" : "border-woven-border"
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
+              <p className="font-body text-md leading-relaxed opacity-70">{product.description}</p>
+              <div className="flex flex-wrap gap-2">
+                {product.sizes.map((size) => (
+                  <button key={size} type="button" onClick={() => setSelectedSize(size)} className={`grid h-11 min-w-11 place-items-center border px-3 font-mono text-xs ${selectedSize === size ? "border-current bg-current text-white" : "border-current/25"}`}>{size}</button>
+                ))}
               </div>
-              <button
-                type="button"
-                onClick={() => setAdded(true)}
-                className={`${buttonClasses("primary")} w-full`}
-              >
-                {product.status === "Notify Me" ? "Notify Me" : "Add To Cart"}
-              </button>
+              <button type="button" onClick={() => setAdded(true)} className={`${buttonClasses("primary")} w-full`}>{product.status === "Notify Me" ? "Notify Me" : "Add To Cart"}</button>
               {added && <p className="font-mono text-xs uppercase tracking-[0.16em] text-woven-accent">Added to cart</p>}
-              {[
-                ["Description", product.description],
-                ["Material & Fabric", product.material],
-                ["Shipping & Returns", "Ships in 3 to 5 working days. Returns accepted within 14 days if unworn."],
-                ["Care Instructions", "Cold wash inside out. Dry flat. Do not bleach."],
-              ].map(([title, copy]) => (
-                <details key={title} className="border-t border-woven-border py-4">
+              {[["Material & Fabric", product.material], ["Shipping & Returns", "Ships in 3 to 5 working days. Returns accepted within 14 days if unworn."]].map(([title, copy]) => (
+                <details key={title} className="border-t border-current/15 py-4">
                   <summary className="cursor-pointer font-mono text-2xs uppercase tracking-[0.16em]">{title}</summary>
-                  <p className="mt-3 font-body text-sm leading-relaxed text-woven-muted">{copy}</p>
+                  <p className="mt-3 font-body text-sm leading-relaxed opacity-70">{copy}</p>
                 </details>
               ))}
             </aside>
           </div>
         </div>
       </main>
-      <Footer />
-    </>
+      <Footer catalog={catalog} activeThemeId={product.theme} />
+    </div>
   );
 }
 
 export function DropsPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
-  const glitch = catalog.collections.find((collection) => collection.slug === "glitch-drop")!;
+  const products = catalog.products.filter((product) => product.status === "Notify Me" || product.status === "New").slice(0, 6);
   return (
     <>
-      <Navigation cartCount={1} />
+      <Navigation catalog={catalog} activeTheme={getTheme(catalog, "winter")} cartCount={1} />
       <main className="bg-woven-near-black px-5 pt-32 text-woven-inverse md:px-10">
-        <div className="mx-auto max-w-7xl">
-          <LogoMark logo={6} size="h-36 w-36" className="glitch-logo" />
-          <h1 className="glitch-title mt-8 font-rajdhani text-10xl font-bold leading-none" data-text="Limited. Always.">
-            Limited. Always.
-          </h1>
-          <Countdown />
-          <div className="grid gap-5 pb-24 md:grid-cols-3">
-            {glitch.products.map((product) => (
-              <ProductCard key={product.id} product={product} collection={glitch} />
-            ))}
+        <div className="mx-auto max-w-7xl pb-24">
+          <h1 className="font-rajdhani text-10xl font-bold leading-none">Limited. Always.</h1>
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {products.map((product) => {
+              const collection = catalog.collections.find((item) => item.slug === product.collection);
+              return <ProductCard key={product.id} product={product} collection={collection} />;
+            })}
           </div>
         </div>
       </main>
-      <Footer collections={catalog.collections} />
+      <Footer catalog={catalog} />
     </>
   );
 }
 
 export function SearchPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
   const [query, setQuery] = useState("");
-  const { collections, products } = catalog;
-  const results = products.filter((product) => product.name.toLowerCase().includes(query.toLowerCase()));
-
+  const results = catalog.products.filter((product) => product.name.toLowerCase().includes(query.toLowerCase()));
   return (
     <>
-      <Navigation cartCount={1} />
+      <Navigation catalog={catalog} activeTheme={getTheme(catalog, "classic")} cartCount={1} />
       <main className="min-h-screen bg-woven-dark px-5 pt-32 text-woven-inverse md:px-10">
         <div className="mx-auto max-w-7xl">
-          <label className="font-mono text-xs uppercase tracking-[0.22em] text-woven-accent" htmlFor="search">
-            Search Woven
-          </label>
-          <input
-            id="search"
-            autoFocus
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Type a product, collection, or mood"
-            className="mt-5 w-full border-b border-woven-inverse/25 bg-transparent py-5 font-display text-6xl outline-none placeholder:text-woven-inverse/25"
-          />
+          <label className="font-mono text-xs uppercase tracking-[0.22em] text-woven-accent" htmlFor="search">Search Woven</label>
+          <input id="search" autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Type a product, collection, or mood" className="mt-5 w-full border-b border-woven-inverse/25 bg-transparent py-5 font-display text-6xl outline-none placeholder:text-woven-inverse/25" />
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {(query ? results : products.slice(0, 4)).map((product) => {
-              const collection = collections.find((item) => item.slug === product.collection)!;
-              return <ProductCard key={product.id} product={product} collection={collection} />;
-            })}
+            {(query ? results : catalog.products.slice(0, 8)).map((product) => <ProductCard key={product.id} product={product} collection={catalog.collections.find((item) => item.slug === product.collection)} />)}
           </div>
         </div>
       </main>
@@ -653,31 +538,14 @@ export function SearchPage({ catalog = fallbackCatalog }: { catalog?: CatalogDat
   );
 }
 
-export function SimpleContentPage({
-  type,
-  catalog = fallbackCatalog,
-}: {
-  type: "about" | "university" | "cart" | "checkout" | "account" | "legal";
-  catalog?: CatalogData;
-}) {
-  const { products } = catalog;
-  const subtotal = products.slice(0, 2).reduce((sum, product) => sum + priceToNumber(product.price), 0);
-  const title =
-    type === "about"
-      ? "The Uniform Of Curiosity."
-      : type === "university"
-        ? "Dressed For Campus. Priced For Students."
-        : type === "cart"
-          ? "Cart Review"
-          : type === "checkout"
-            ? "Checkout"
-            : type === "account"
-              ? "Account"
-              : "Returns, Terms, And Privacy";
+export function SimpleContentPage({ type, catalog = fallbackCatalog }: { type: "about" | "cart" | "checkout" | "account" | "legal"; catalog?: CatalogData }) {
+  const products = useMemo(() => catalog.products.slice(0, 2), [catalog.products]);
+  const subtotal = products.reduce((sum, product) => sum + priceToNumber(product.price), 0);
+  const title = type === "about" ? "Clothing Worlds For Everyday Life." : type === "cart" ? "Cart Review" : type === "checkout" ? "Checkout" : type === "account" ? "Saved Pieces" : "Returns, Terms, And Privacy";
 
   return (
     <>
-      <Navigation cartCount={1} />
+      <Navigation catalog={catalog} activeTheme={getTheme(catalog, "classic")} cartCount={1} />
       <main className="bg-woven-bg px-5 pb-24 pt-32 text-woven-text md:px-10">
         <section className="mx-auto max-w-7xl">
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-woven-accent">Woven</p>
@@ -685,51 +553,24 @@ export function SimpleContentPage({
           {type === "cart" || type === "checkout" ? (
             <div className="mt-12 grid gap-8 lg:grid-cols-[1fr_380px]">
               <div className="grid gap-4">
-                {products.slice(0, 2).map((product) => (
-                  <div key={product.id} className="grid gap-4 border border-woven-border p-4 sm:grid-cols-[120px_1fr_auto]">
-                    <ProductArtwork product={product} />
-                    <div>
-                      <h2 className="font-display text-4xl">{product.name}</h2>
-                      <p className="mt-2 font-body text-sm text-woven-muted">Size M / Quantity 1</p>
-                    </div>
-                    <p className="font-mono text-sm">{product.price}</p>
-                  </div>
-                ))}
+                {products.map((product) => <div key={product.id} className="grid gap-4 border border-woven-border p-4 sm:grid-cols-[120px_1fr_auto]"><ProductArtwork product={product} /><div><h2 className="font-display text-4xl">{product.name}</h2><p className="mt-2 font-body text-sm text-woven-muted">Size M / Quantity 1</p></div><p className="font-mono text-sm">{product.price}</p></div>)}
               </div>
               <aside className="h-fit border border-woven-border p-6">
                 <p className="font-mono text-2xs uppercase tracking-[0.18em]">Order Summary</p>
-                <div className="mt-5 flex justify-between font-body">
-                  <span>Subtotal</span>
-                  <span>PKR {subtotal.toLocaleString("en-US")}</span>
-                </div>
-                
-                <Link href="/checkout/delivery" className={`${buttonClasses("primary")} mt-6 w-full`}>
-                  Continue
-                </Link>
+                <div className="mt-5 flex justify-between font-body"><span>Subtotal</span><span>PKR {subtotal.toLocaleString("en-US")}</span></div>
+                <Link href="/checkout/delivery" className={`${buttonClasses("primary")} mt-6 w-full`}>Continue</Link>
               </aside>
-            </div>
-          ) : type === "university" ? (
-            <div className="mt-12">
-              <BrandStory />
             </div>
           ) : (
             <div className="mt-12 grid gap-6 md:grid-cols-3">
-              {[
-                ["01", "Verify", "Use a university email or campus ID pattern to unlock student pricing."],
-                ["02", "Choose", "Move through collections by identity, not just category."],
-                ["03", "Wear", "Pieces built for lectures, studios, society rooms, and late plans."],
-              ].map(([number, heading, copy]) => (
-                <article key={number} className="border border-woven-border bg-woven-surface p-6">
-                  <p className="font-mono text-2xs uppercase tracking-[0.18em] text-woven-accent">{number}</p>
-                  <h2 className="mt-8 font-display text-5xl">{heading}</h2>
-                  <p className="mt-3 font-body text-sm leading-relaxed text-woven-muted">{copy}</p>
-                </article>
+              {[["01", "Choose A Theme", "Move between Classic, Summer, and Winter as complete clothing worlds."], ["02", "Find Your Pieces", "Browse plain essentials, summer outfits, winter layers, and formal edits."], ["03", "Wear Your Way", "Build a wardrobe around the weather, the day, and your own rhythm."]].map(([number, heading, copy]) => (
+                <article key={number} className="border border-woven-border bg-woven-surface p-6"><p className="font-mono text-2xs uppercase tracking-[0.18em] text-woven-accent">{number}</p><h2 className="mt-8 font-display text-5xl">{heading}</h2><p className="mt-3 font-body text-sm leading-relaxed text-woven-muted">{copy}</p></article>
               ))}
             </div>
           )}
         </section>
       </main>
-      <Footer collections={catalog.collections} />
+      <Footer catalog={catalog} />
     </>
   );
 }

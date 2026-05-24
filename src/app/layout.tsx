@@ -3,12 +3,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Woven | Ideas Stitched Into Reality",
-  description:
-    "University Edition SS25 clothing collections for campus life, creative students, and limited drops.",
+  description: "Theme-led clothing collections across Classic, Summer, and Winter.",
   openGraph: {
     title: "Woven | Ideas Stitched Into Reality",
-    description:
-      "Minimal, streetwise, academic, and digital clothing collections for university students.",
+    description: "Plain essentials, summer pieces, formal edits, and winter layers by Woven.",
     type: "website",
   },
 };

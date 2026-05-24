@@ -1,11 +1,13 @@
 import {
   buildCollections,
   fallbackCatalog,
+  mapSupabaseTheme,
   mapSupabaseCollection,
   mapSupabaseProduct,
   type CatalogData,
   type Collection,
   type Product,
+  type SupabaseThemeRow,
   type SupabaseCollectionRow,
   type SupabaseProductRow,
 } from "@/lib/woven-data";
@@ -51,19 +53,22 @@ export async function getCatalogData(): Promise<CatalogData> {
   }
 
   try {
-    const [collectionRows, productRows] = await Promise.all([
+    const [themeRows, collectionRows, productRows] = await Promise.all([
+      fetchTable<SupabaseThemeRow>("themes", "select=*&order=sort_order.asc"),
       fetchTable<SupabaseCollectionRow>("collections", "select=*&order=sort_order.asc"),
       fetchTable<SupabaseProductRow>("products", "select=*&order=sort_order.asc"),
     ]);
 
-    if (collectionRows.length === 0 || productRows.length === 0) {
+    if (themeRows.length === 0 || collectionRows.length === 0 || productRows.length === 0) {
       return fallbackCatalog;
     }
 
+    const themes = themeRows.map(mapSupabaseTheme);
     const catalogProducts = productRows.map(mapSupabaseProduct);
     const collectionShells = collectionRows.map(mapSupabaseCollection);
 
     return {
+      themes,
       collections: buildCollections(collectionShells, catalogProducts),
       products: catalogProducts,
     };

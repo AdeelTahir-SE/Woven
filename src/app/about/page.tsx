@@ -3,7 +3,7 @@ import { getCatalogData } from "@/lib/supabase-catalog";
 
 export const metadata = {
   title: "About | Woven",
-  description: "The Woven story and student-first brand manifesto.",
+  description: "The Woven story, theme system, and clothing worlds.",
 };
 
 export default async function Page() {

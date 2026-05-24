@@ -4,5 +4,5 @@ import { getCatalogData } from "@/lib/supabase-catalog";
 export default async function Home() {
   const catalog = await getCatalogData();
 
-  return <HomeExperience catalog={catalog} />;
+  return <HomeExperience catalog={catalog} themeId="classic" />;
 }

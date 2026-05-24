@@ -3,7 +3,7 @@ import { getCatalogData } from "@/lib/supabase-catalog";
 
 export const metadata = {
   title: "Collections | Woven",
-  description: "Browse all Woven university clothing collections.",
+  description: "Browse Woven collections across Classic, Summer, and Winter themes.",
 };
 
 export default async function CollectionsPage() {

@@ -29,5 +29,5 @@ export default async function CollectionPage(props: PageProps<"/collections/[slu
     notFound();
   }
 
-  return <CollectionDetailPage collection={collection} />;
+  return <CollectionDetailPage catalog={await getCatalogData()} collection={collection} />;
 }

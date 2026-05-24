@@ -36,5 +36,5 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
     notFound();
   }
 
-  return <ProductDetailPage product={product} collection={collection} />;
+  return <ProductDetailPage catalog={catalog} product={product} collection={collection} />;
 }

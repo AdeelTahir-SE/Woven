@@ -1,17 +1,41 @@
+export type ThemeId = "classic" | "summer" | "winter";
+
 export type CollectionSlug =
-  | "thread-classics"
-  | "minimal-edit"
-  | "digital-weave"
-  | "street-stitch"
-  | "glitch-drop"
-  | "society";
+  | "plain-essentials"
+  | "formal-edit"
+  | "refined-basics"
+  | "sky-t-shirts"
+  | "light-pants"
+  | "summer-sets"
+  | "ice-hoodies"
+  | "cold-air-jackets"
+  | "winter-essentials";
+
+export type Theme = {
+  id: ThemeId;
+  label: string;
+  tagline: string;
+  heroTitle: string;
+  heroMedia: "classic" | "summer" | "winter";
+  navClass: string;
+  navTextClass: string;
+  stripClass: string;
+  stripTextClass: string;
+  pageClass: string;
+  accentName: string;
+  sortOrder: number;
+};
 
 export type Product = {
   id: string;
   slug: string;
   name: string;
   price: string;
+  theme: ThemeId;
   collection: CollectionSlug;
+  imagePath: string;
+  imageAlt: string;
+  hoverImagePath?: string;
   sizes: string[];
   palette: string;
   status?: "New" | "Sold Out" | "Notify Me";
@@ -21,6 +45,7 @@ export type Product = {
 
 export type Collection = {
   slug: CollectionSlug;
+  theme: ThemeId;
   number: string;
   title: string;
   displayTitle: string;
@@ -35,12 +60,29 @@ export type Collection = {
 };
 
 export type CatalogData = {
+  themes: Theme[];
   collections: Collection[];
   products: Product[];
 };
 
+export type SupabaseThemeRow = {
+  id: ThemeId;
+  label: string;
+  tagline: string;
+  hero_title: string;
+  hero_media: Theme["heroMedia"];
+  nav_class: string;
+  nav_text_class: string;
+  strip_class: string;
+  strip_text_class: string;
+  page_class: string;
+  accent_name: string;
+  sort_order: number;
+};
+
 export type SupabaseCollectionRow = {
   slug: string;
+  theme_id: ThemeId;
   number: string;
   title: string;
   display_title: string;
@@ -59,7 +101,11 @@ export type SupabaseProductRow = {
   slug: string;
   name: string;
   price_pkr: number;
+  theme_id: ThemeId;
   collection_slug: CollectionSlug;
+  image_path: string;
+  image_alt: string;
+  hover_image_path: string | null;
   sizes: string[];
   palette: string;
   status: Product["status"] | null;
@@ -68,168 +114,323 @@ export type SupabaseProductRow = {
   sort_order: number;
 };
 
+export const fallbackThemes: Theme[] = [
+  {
+    id: "classic",
+    label: "Classic",
+    tagline: "Plain, formal, and refined pieces for everyday life.",
+    heroTitle: "Woven",
+    heroMedia: "classic",
+    navClass: "border-woven-border bg-woven-bg/92",
+    navTextClass: "text-woven-text",
+    stripClass: "border-woven-border bg-woven-bg/95",
+    stripTextClass: "text-woven-text",
+    pageClass: "theme-classic bg-woven-bg text-woven-text",
+    accentName: "heritage gold",
+    sortOrder: 1,
+  },
+  {
+    id: "summer",
+    label: "Summer",
+    tagline: "Made for open skies, easy movement, and warm days together.",
+    heroTitle: "Woven",
+    heroMedia: "summer",
+    navClass: "border-black bg-black",
+    navTextClass: "text-black md:text-white",
+    stripClass: "border-black bg-black",
+    stripTextClass: "text-black",
+    pageClass: "theme-summer bg-white text-black",
+    accentName: "sky blue",
+    sortOrder: 2,
+  },
+  {
+    id: "winter",
+    label: "Winter",
+    tagline: "Layers for cold air, quiet light, and crisp winter days.",
+    heroTitle: "Woven",
+    heroMedia: "winter",
+    navClass: "border-winter-ice bg-winter-ice/95",
+    navTextClass: "text-winter-ink",
+    stripClass: "border-winter-ice bg-winter-ice/95",
+    stripTextClass: "text-winter-ink",
+    pageClass: "theme-winter bg-winter-mist text-winter-ink",
+    accentName: "ice blue",
+    sortOrder: 3,
+  },
+];
+
 export const fallbackProducts: Product[] = [
   {
-    id: "tc-01",
-    slug: "foundation-oxford-shirt",
-    name: "Foundation Oxford Shirt",
-    price: "PKR 4,800",
-    collection: "thread-classics",
+    id: "pe-01",
+    slug: "clean-crew-tee",
+    name: "Clean Crew Tee",
+    price: "PKR 3,200",
+    theme: "classic",
+    collection: "plain-essentials",
+    imagePath: "classic/plain-essentials/clean-crew-tee.jpg",
+    imageAlt: "Clean Crew Tee product image",
     sizes: ["XS", "S", "M", "L", "XL"],
     palette: "from-stone-100 via-neutral-200 to-stone-300",
     status: "New",
-    description:
-      "A brushed cotton oxford with a relaxed campus fit, soft collar, and stitched Woven mark at the cuff.",
+    description: "A soft heavyweight crew with a straight fit and a quiet stitched Woven mark.",
+    material: "240gsm cotton jersey with reinforced shoulder seams.",
+  },
+  {
+    id: "pe-02",
+    slug: "everyday-oxford-shirt",
+    name: "Everyday Oxford Shirt",
+    price: "PKR 4,800",
+    theme: "classic",
+    collection: "plain-essentials",
+    imagePath: "classic/plain-essentials/everyday-oxford-shirt.jpg",
+    imageAlt: "Everyday Oxford Shirt product image",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    palette: "from-zinc-100 via-stone-100 to-neutral-300",
+    description: "A brushed cotton oxford with a relaxed fit, soft collar, and clean cuff finish.",
     material: "220gsm cotton oxford, corozo buttons, reinforced seams.",
   },
   {
-    id: "tc-02",
-    slug: "library-knit-polo",
-    name: "Library Knit Polo",
-    price: "PKR 5,200",
-    collection: "thread-classics",
-    sizes: ["S", "M", "L", "XL"],
-    palette: "from-zinc-200 via-stone-100 to-zinc-300",
-    description:
-      "Fine rib texture, structured placket, and a weight that works from morning lectures to evening critiques.",
-    material: "Cotton viscose knit with ribbed cuffs and collar.",
-  },
-  {
-    id: "me-01",
-    slug: "folded-seam-jacket",
-    name: "Folded Seam Jacket",
-    price: "PKR 7,900",
-    collection: "minimal-edit",
-    sizes: ["XS", "S", "M", "L"],
-    palette: "from-neutral-300 via-stone-200 to-zinc-100",
-    status: "New",
-    description:
-      "A quiet overshirt with hidden pockets, flat-felled seams, and a sharp box silhouette.",
-    material: "Midweight cotton twill with recycled poly lining.",
-  },
-  {
-    id: "me-02",
-    slug: "paperweight-trouser",
-    name: "Paperweight Trouser",
-    price: "PKR 5,600",
-    collection: "minimal-edit",
-    sizes: ["S", "M", "L", "XL"],
-    palette: "from-stone-200 via-neutral-100 to-stone-300",
-    description:
-      "Pleated, cropped, and easy to move in, made for studio days and pinned-up deadlines.",
-    material: "Cotton poplin blend with a matte hand feel.",
-  },
-  {
-    id: "dw-01",
-    slug: "compile-hoodie",
-    name: "Compile Hoodie",
-    price: "PKR 6,400",
-    collection: "digital-weave",
-    sizes: ["S", "M", "L", "XL"],
-    palette: "from-neutral-900 via-cyan-950 to-zinc-800",
-    status: "New",
-    description:
-      "Heavy fleece hoodie with pixel-grid sleeve panels and a hidden headphone loop inside the hood.",
-    material: "320gsm brushed fleece, rib inserts, reflective woven label.",
-  },
-  {
-    id: "dw-02",
-    slug: "runtime-cargo",
-    name: "Runtime Cargo",
-    price: "PKR 6,900",
-    collection: "digital-weave",
-    sizes: ["S", "M", "L"],
-    palette: "from-zinc-900 via-neutral-700 to-cyan-950",
-    description:
-      "Tapered cargo pant with utility pockets and tonal grid embroidery at the knee.",
-    material: "Ripstop cotton nylon with matte hardware.",
-  },
-  {
-    id: "ss-01",
-    slug: "underpass-tee",
-    name: "Underpass Tee",
-    price: "PKR 3,200",
-    collection: "street-stitch",
-    sizes: ["S", "M", "L", "XL"],
-    palette: "from-neutral-950 via-stone-700 to-neutral-200",
-    status: "New",
-    description:
-      "Oversized tee with cracked ink typography, raw edge label, and a heavy drape.",
-    material: "240gsm cotton jersey with discharge print.",
-  },
-  {
-    id: "ss-02",
-    slug: "zine-canvas-vest",
-    name: "Zine Canvas Vest",
-    price: "PKR 6,100",
-    collection: "street-stitch",
-    sizes: ["S", "M", "L"],
-    palette: "from-stone-800 via-neutral-500 to-stone-200",
-    description:
-      "Canvas vest with asymmetric pockets and removable hand-tag panel for pins and patches.",
-    material: "Washed canvas, cotton tape, antique nickel snaps.",
-  },
-  {
-    id: "gd-01",
-    slug: "signal-loss-shell",
-    name: "Signal Loss Shell",
-    price: "PKR 8,400",
-    collection: "glitch-drop",
-    sizes: ["S", "M", "L"],
-    palette: "from-fuchsia-950 via-neutral-950 to-cyan-950",
-    status: "Notify Me",
-    description:
-      "Limited shell jacket with sliced reflective panels and a packable hood. Next drop opens soon.",
-    material: "Water-resistant nylon, mesh lining, reflective heat transfer.",
-  },
-  {
-    id: "gd-02",
-    slug: "ghost-frame-tee",
-    name: "Ghost Frame Tee",
-    price: "PKR 3,600",
-    collection: "glitch-drop",
-    sizes: ["S", "M", "L", "XL"],
-    palette: "from-neutral-950 via-fuchsia-900 to-cyan-900",
-    status: "Sold Out",
-    description:
-      "A graphic tee with offset cyan and magenta frame graphics, released in a numbered run.",
-    material: "Cotton jersey with soft-hand screen print.",
-  },
-  {
-    id: "sc-01",
-    slug: "debate-club-blazer",
-    name: "Debate Club Blazer",
+    id: "fe-01",
+    slug: "soft-structure-blazer",
+    name: "Soft Structure Blazer",
     price: "PKR 12,800",
-    collection: "society",
+    theme: "classic",
+    collection: "formal-edit",
+    imagePath: "classic/formal-edit/soft-structure-blazer.jpg",
+    imageAlt: "Soft Structure Blazer product image",
     sizes: ["XS", "S", "M", "L"],
-    palette: "from-amber-950 via-stone-700 to-woven-tan",
+    palette: "from-neutral-900 via-stone-700 to-woven-tan",
     status: "New",
-    description:
-      "Unstructured blazer with crest lining, soft shoulders, and a lapel made for society nights.",
+    description: "An unstructured blazer with natural shoulders, clean lining, and a polished daily shape.",
     material: "Cotton wool blend with satin jacquard lining.",
   },
   {
-    id: "sc-02",
-    slug: "chairperson-waistcoat",
-    name: "Chairperson Waistcoat",
+    id: "fe-02",
+    slug: "tailored-waistcoat",
+    name: "Tailored Waistcoat",
     price: "PKR 7,300",
-    collection: "society",
+    theme: "classic",
+    collection: "formal-edit",
+    imagePath: "classic/formal-edit/tailored-waistcoat.jpg",
+    imageAlt: "Tailored Waistcoat product image",
     sizes: ["S", "M", "L", "XL"],
     palette: "from-stone-700 via-woven-tan to-amber-100",
-    description:
-      "A tailored waistcoat with double-rule stitching and a neat inner pocket for debate notes.",
+    description: "A neat waistcoat with double-rule stitching, horn buttons, and an easy formal finish.",
     material: "Textured cotton blend, horn buttons, contrast piping.",
+  },
+  {
+    id: "rb-01",
+    slug: "folded-seam-overshirt",
+    name: "Folded Seam Overshirt",
+    price: "PKR 7,900",
+    theme: "classic",
+    collection: "refined-basics",
+    imagePath: "classic/refined-basics/folded-seam-overshirt.jpg",
+    imageAlt: "Folded Seam Overshirt product image",
+    sizes: ["XS", "S", "M", "L"],
+    palette: "from-neutral-300 via-stone-200 to-zinc-100",
+    description: "A quiet overshirt with hidden pockets, flat-felled seams, and a sharp box silhouette.",
+    material: "Midweight cotton twill with recycled poly lining.",
+  },
+  {
+    id: "rb-02",
+    slug: "paperweight-trouser",
+    name: "Paperweight Trouser",
+    price: "PKR 5,600",
+    theme: "classic",
+    collection: "refined-basics",
+    imagePath: "classic/refined-basics/paperweight-trouser.jpg",
+    imageAlt: "Paperweight Trouser product image",
+    sizes: ["S", "M", "L", "XL"],
+    palette: "from-stone-200 via-neutral-100 to-stone-300",
+    description: "Pleated, cropped, and easy to move in, made for long days and clean silhouettes.",
+    material: "Cotton poplin blend with a matte hand feel.",
+  },
+  {
+    id: "st-01",
+    slug: "skyline-pocket-tee",
+    name: "Skyline Pocket Tee",
+    price: "PKR 3,000",
+    theme: "summer",
+    collection: "sky-t-shirts",
+    imagePath: "summer/sky-t-shirts/skyline-pocket-tee.jpg",
+    imageAlt: "Skyline Pocket Tee product image",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    palette: "from-sky-200 via-cyan-100 to-yellow-100",
+    status: "New",
+    description: "A breathable pocket tee with a relaxed shoulder and sun-washed color.",
+    material: "Cotton jersey with garment-washed softness.",
+  },
+  {
+    id: "st-02",
+    slug: "sun-drift-tee",
+    name: "Sun Drift Tee",
+    price: "PKR 3,100",
+    theme: "summer",
+    collection: "sky-t-shirts",
+    imagePath: "summer/sky-t-shirts/sun-drift-tee.jpg",
+    imageAlt: "Sun Drift Tee product image",
+    sizes: ["S", "M", "L", "XL"],
+    palette: "from-blue-100 via-sky-300 to-white",
+    description: "A clean summer tee with airy weight, smooth neckline, and easy daily drape.",
+    material: "Lightweight combed cotton jersey.",
+  },
+  {
+    id: "lp-01",
+    slug: "breeze-cotton-pant",
+    name: "Breeze Cotton Pant",
+    price: "PKR 5,400",
+    theme: "summer",
+    collection: "light-pants",
+    imagePath: "summer/light-pants/breeze-cotton-pant.jpg",
+    imageAlt: "Breeze Cotton Pant product image",
+    sizes: ["S", "M", "L", "XL"],
+    palette: "from-stone-100 via-sky-100 to-cyan-200",
+    status: "New",
+    description: "Straight-leg cotton pants with a soft hand feel and room for warm-weather movement.",
+    material: "Cotton poplin with elastic side tabs.",
+  },
+  {
+    id: "lp-02",
+    slug: "open-air-chino",
+    name: "Open Air Chino",
+    price: "PKR 5,800",
+    theme: "summer",
+    collection: "light-pants",
+    imagePath: "summer/light-pants/open-air-chino.jpg",
+    imageAlt: "Open Air Chino product image",
+    sizes: ["S", "M", "L", "XL"],
+    palette: "from-cyan-100 via-white to-yellow-100",
+    description: "A tapered chino with lightweight structure, clean pockets, and a bright summer finish.",
+    material: "Cotton twill with a breathable weave.",
+  },
+  {
+    id: "ssu-01",
+    slug: "sunset-easy-set",
+    name: "Sunset Easy Set",
+    price: "PKR 8,600",
+    theme: "summer",
+    collection: "summer-sets",
+    imagePath: "summer/summer-sets/sunset-easy-set.jpg",
+    imageAlt: "Sunset Easy Set product image",
+    sizes: ["S", "M", "L"],
+    palette: "from-sky-300 via-orange-100 to-white",
+    status: "New",
+    description: "A matching tee and pant set for slow weekends, travel days, and outdoor plans.",
+    material: "Cotton linen blend with soft rib trim.",
+  },
+  {
+    id: "ssu-02",
+    slug: "poolside-knit-polo",
+    name: "Poolside Knit Polo",
+    price: "PKR 5,200",
+    theme: "summer",
+    collection: "summer-sets",
+    imagePath: "summer/summer-sets/poolside-knit-polo.jpg",
+    imageAlt: "Poolside Knit Polo product image",
+    sizes: ["S", "M", "L", "XL"],
+    palette: "from-white via-sky-100 to-blue-200",
+    description: "Fine rib texture, structured placket, and a light hand for sunny-day polish.",
+    material: "Cotton viscose knit with ribbed cuffs and collar.",
+  },
+  {
+    id: "ih-01",
+    slug: "frostline-hoodie",
+    name: "Frostline Hoodie",
+    price: "PKR 6,400",
+    theme: "winter",
+    collection: "ice-hoodies",
+    imagePath: "winter/ice-hoodies/frostline-hoodie.jpg",
+    imageAlt: "Frostline Hoodie product image",
+    sizes: ["S", "M", "L", "XL"],
+    palette: "from-slate-200 via-blue-100 to-white",
+    status: "New",
+    description: "Heavy fleece hoodie with a soft brushed interior and a clean ice-toned finish.",
+    material: "340gsm brushed fleece, rib inserts, woven label.",
+  },
+  {
+    id: "ih-02",
+    slug: "snowfield-zip-hoodie",
+    name: "Snowfield Zip Hoodie",
+    price: "PKR 6,900",
+    theme: "winter",
+    collection: "ice-hoodies",
+    imagePath: "winter/ice-hoodies/snowfield-zip-hoodie.jpg",
+    imageAlt: "Snowfield Zip Hoodie product image",
+    sizes: ["S", "M", "L", "XL"],
+    palette: "from-white via-slate-100 to-blue-200",
+    description: "A full-zip hoodie with layered pockets, warm ribbing, and soft winter weight.",
+    material: "Cotton fleece with brushed interior and metal zip.",
+  },
+  {
+    id: "caj-01",
+    slug: "cold-air-puffer",
+    name: "Cold Air Puffer",
+    price: "PKR 11,800",
+    theme: "winter",
+    collection: "cold-air-jackets",
+    imagePath: "winter/cold-air-jackets/cold-air-puffer.jpg",
+    imageAlt: "Cold Air Puffer product image",
+    sizes: ["S", "M", "L", "XL"],
+    palette: "from-slate-800 via-blue-200 to-white",
+    status: "New",
+    description: "A warm puffer with a high collar, cloud-soft fill, and crisp winter silhouette.",
+    material: "Water-resistant nylon shell with recycled poly fill.",
+  },
+  {
+    id: "caj-02",
+    slug: "glacier-shell-jacket",
+    name: "Glacier Shell Jacket",
+    price: "PKR 8,400",
+    theme: "winter",
+    collection: "cold-air-jackets",
+    imagePath: "winter/cold-air-jackets/glacier-shell-jacket.jpg",
+    imageAlt: "Glacier Shell Jacket product image",
+    sizes: ["S", "M", "L"],
+    palette: "from-cyan-950 via-slate-700 to-blue-100",
+    description: "A protective shell jacket with a packable hood and reflective winter detailing.",
+    material: "Water-resistant nylon, mesh lining, reflective heat transfer.",
+  },
+  {
+    id: "we-01",
+    slug: "thermal-layer-tee",
+    name: "Thermal Layer Tee",
+    price: "PKR 3,600",
+    theme: "winter",
+    collection: "winter-essentials",
+    imagePath: "winter/winter-essentials/thermal-layer-tee.jpg",
+    imageAlt: "Thermal Layer Tee product image",
+    sizes: ["S", "M", "L", "XL"],
+    palette: "from-slate-100 via-white to-cyan-100",
+    description: "A warm first layer with a smooth face, brushed back, and easy stretch.",
+    material: "Cotton thermal blend with flatlock seams.",
+  },
+  {
+    id: "we-02",
+    slug: "quiet-snow-scarf",
+    name: "Quiet Snow Scarf",
+    price: "PKR 2,900",
+    theme: "winter",
+    collection: "winter-essentials",
+    imagePath: "winter/winter-essentials/quiet-snow-scarf.jpg",
+    imageAlt: "Quiet Snow Scarf product image",
+    sizes: ["One Size"],
+    palette: "from-white via-blue-100 to-slate-200",
+    status: "New",
+    description: "A soft winter scarf with subtle texture and a clean Woven tab.",
+    material: "Acrylic wool blend with soft fringe edges.",
   },
 ];
 
 export const fallbackCollectionShells: Omit<Collection, "products">[] = [
   {
-    slug: "thread-classics",
+    slug: "plain-essentials",
+    theme: "classic",
     number: "01",
-    title: "Thread Classics",
-    displayTitle: "Thread Classics",
-    tagline: "The Foundation Pieces",
-    mood: "Refined heritage basics for students who want quiet quality.",
+    title: "Plain Essentials",
+    displayTitle: "Plain Essentials",
+    tagline: "Clean Daily Pieces",
+    mood: "Simple, reliable clothes with quiet detail and a refined everyday shape.",
     logo: 1,
     logoSheet: 1,
     bgClass: "bg-woven-bg",
@@ -237,12 +438,27 @@ export const fallbackCollectionShells: Omit<Collection, "products">[] = [
     fontClass: "font-display",
   },
   {
-    slug: "minimal-edit",
+    slug: "formal-edit",
+    theme: "classic",
     number: "02",
-    title: "Minimal Edit",
-    displayTitle: "minimal edit",
-    tagline: "Less. Meant.",
-    mood: "Japanese-inspired cuts, muted tones, and considered whitespace.",
+    title: "Formal Edit",
+    displayTitle: "Formal Edit",
+    tagline: "Soft Structure",
+    mood: "Polished layers for dinners, meetings, events, and the days that ask for more.",
+    logo: 7,
+    logoSheet: 1,
+    bgClass: "bg-woven-tan",
+    textClass: "text-woven-text",
+    fontClass: "font-playfair",
+  },
+  {
+    slug: "refined-basics",
+    theme: "classic",
+    number: "03",
+    title: "Refined Basics",
+    displayTitle: "refined basics",
+    tagline: "Less. Better.",
+    mood: "Muted tones, considered cuts, and easy silhouettes for repeat wear.",
     logo: 5,
     logoSheet: 1,
     bgClass: "bg-woven-surface",
@@ -250,61 +466,94 @@ export const fallbackCollectionShells: Omit<Collection, "products">[] = [
     fontClass: "font-syne",
   },
   {
-    slug: "digital-weave",
-    number: "03",
-    title: "Digital Weave",
-    displayTitle: "DIGITAL WEAVE",
-    tagline: "Generated. Designed. Worn.",
-    mood: "Pixelated, technical, and built for late-night labs.",
-    logo: 3,
+    slug: "sky-t-shirts",
+    theme: "summer",
+    number: "01",
+    title: "Sky T-Shirts",
+    displayTitle: "Sky T-Shirts",
+    tagline: "Light Above Everything",
+    mood: "Breathable tees in clear colors, cut for open days and easy movement.",
+    logo: 2,
     logoSheet: 1,
-    bgClass: "bg-woven-dark",
-    textClass: "text-woven-inverse",
+    bgClass: "bg-summer-sky",
+    textClass: "text-black",
     fontClass: "font-grotesk",
   },
   {
-    slug: "street-stitch",
-    number: "04",
-    title: "Street Stitch",
-    displayTitle: "STREET STITCH",
-    tagline: "Built Different.",
-    mood: "Raw, oversized, noisy, and tuned to campus subculture.",
-    logo: 9,
+    slug: "light-pants",
+    theme: "summer",
+    number: "02",
+    title: "Light Pants",
+    displayTitle: "Light Pants",
+    tagline: "Move With The Heat",
+    mood: "Airy pants with enough structure for city plans and enough ease for long afternoons.",
+    logo: 4,
     logoSheet: 1,
-    bgClass: "bg-woven-bg",
-    textClass: "text-woven-text",
-    fontClass: "font-bebas",
+    bgClass: "bg-white",
+    textClass: "text-black",
+    fontClass: "font-syne",
   },
   {
-    slug: "glitch-drop",
-    number: "05",
-    title: "Glitch Drop",
-    displayTitle: "GLITCH DROP",
-    tagline: "Think. Create. Wear.",
-    mood: "Limited digital distortion with a real countdown pulse.",
+    slug: "summer-sets",
+    theme: "summer",
+    number: "03",
+    title: "Summer Sets",
+    displayTitle: "Summer Sets",
+    tagline: "Ready Together",
+    mood: "Warm-weather pairings that feel relaxed, bright, and simple to wear.",
+    logo: 8,
+    logoSheet: 1,
+    bgClass: "bg-summer-warm",
+    textClass: "text-black",
+    fontClass: "font-display",
+  },
+  {
+    slug: "ice-hoodies",
+    theme: "winter",
+    number: "01",
+    title: "Ice Hoodies",
+    displayTitle: "Ice Hoodies",
+    tagline: "Soft Cold-Weather Weight",
+    mood: "Brushed fleece, calm colors, and easy warmth for cold mornings.",
+    logo: 3,
+    logoSheet: 1,
+    bgClass: "bg-winter-ice",
+    textClass: "text-winter-ink",
+    fontClass: "font-grotesk",
+  },
+  {
+    slug: "cold-air-jackets",
+    theme: "winter",
+    number: "02",
+    title: "Cold-Air Jackets",
+    displayTitle: "Cold-Air Jackets",
+    tagline: "Outside Layer",
+    mood: "Protective shells and puffers shaped for crisp air and shifting weather.",
     logo: 6,
     logoSheet: 1,
-    bgClass: "bg-woven-near-black",
-    textClass: "text-woven-inverse",
+    bgClass: "bg-winter-steel",
+    textClass: "text-winter-ink",
     fontClass: "font-rajdhani",
   },
   {
-    slug: "society",
-    number: "06",
-    title: "Society Collection",
-    displayTitle: "Society Collection",
-    tagline: "Est. 2025. For Those Who Lead.",
-    mood: "Academic heritage for debate nights, MUN floors, and formal campus rituals.",
-    logo: 7,
+    slug: "winter-essentials",
+    theme: "winter",
+    number: "03",
+    title: "Winter Essentials",
+    displayTitle: "Winter Essentials",
+    tagline: "Quiet Warmth",
+    mood: "Thermal layers and small cold-weather pieces made for daily comfort.",
+    logo: 9,
     logoSheet: 1,
-    bgClass: "bg-woven-tan",
-    textClass: "text-woven-text",
+    bgClass: "bg-winter-mist",
+    textClass: "text-winter-ink",
     fontClass: "font-playfair",
   },
 ];
 
 export const fallbackCollections = buildCollections(fallbackCollectionShells, fallbackProducts);
 export const fallbackCatalog: CatalogData = {
+  themes: fallbackThemes,
   collections: fallbackCollections,
   products: fallbackProducts,
 };
@@ -313,9 +562,27 @@ export function formatPrice(pricePkr: number) {
   return `PKR ${pricePkr.toLocaleString("en-US")}`;
 }
 
+export function mapSupabaseTheme(row: SupabaseThemeRow): Theme {
+  return {
+    id: row.id,
+    label: row.label,
+    tagline: row.tagline,
+    heroTitle: row.hero_title,
+    heroMedia: row.hero_media,
+    navClass: row.nav_class,
+    navTextClass: row.nav_text_class,
+    stripClass: row.strip_class,
+    stripTextClass: row.strip_text_class,
+    pageClass: row.page_class,
+    accentName: row.accent_name,
+    sortOrder: row.sort_order,
+  };
+}
+
 export function mapSupabaseCollection(row: SupabaseCollectionRow): Omit<Collection, "products"> {
   return {
     slug: row.slug as CollectionSlug,
+    theme: row.theme_id,
     number: row.number,
     title: row.title,
     displayTitle: row.display_title,
@@ -335,7 +602,11 @@ export function mapSupabaseProduct(row: SupabaseProductRow): Product {
     slug: row.slug,
     name: row.name,
     price: formatPrice(row.price_pkr),
+    theme: row.theme_id,
     collection: row.collection_slug,
+    imagePath: row.image_path,
+    imageAlt: row.image_alt,
+    hoverImagePath: row.hover_image_path ?? undefined,
     sizes: row.sizes,
     palette: row.palette,
     status: row.status ?? undefined,
@@ -347,8 +618,12 @@ export function mapSupabaseProduct(row: SupabaseProductRow): Product {
 export function buildCollections(collectionShells: Omit<Collection, "products">[], catalogProducts: Product[]) {
   return collectionShells.map((collection) => ({
     ...collection,
-    products: catalogProducts.filter((product) => product.collection === collection.slug),
+    products: catalogProducts.filter((product) => product.collection === collection.slug && product.theme === collection.theme),
   }));
+}
+
+export function getThemeFromCatalog(catalog: CatalogData, id: string) {
+  return catalog.themes.find((theme) => theme.id === id);
 }
 
 export function getCollectionFromCatalog(catalog: CatalogData, slug: string) {

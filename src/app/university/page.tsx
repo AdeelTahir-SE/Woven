@@ -1,13 +1,10 @@
-import { SimpleContentPage } from "@/components/woven-client";
-import { getCatalogData } from "@/lib/supabase-catalog";
+import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "University Program | Woven",
-  description: "Student verification, discounts, and campus ambassador details.",
+  title: "Themes | Woven",
+  description: "Explore Woven themes.",
 };
 
-export default async function Page() {
-  const catalog = await getCatalogData();
-
-  return <SimpleContentPage type="university" catalog={catalog} />;
+export default function Page() {
+  redirect("/themes/classic");
 }
