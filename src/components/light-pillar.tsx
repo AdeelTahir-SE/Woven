@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import * as THREE from "three";
 import styles from "./light-pillar.module.css";
 
@@ -17,9 +17,30 @@ type LightPillarProps = {
   pillarWidth?: number;
   pillarHeight?: number;
   noiseIntensity?: number;
-  mixBlendMode?: string;
+  mixBlendMode?: CSSProperties["mixBlendMode"];
   pillarRotation?: number;
   quality?: Quality;
+};
+
+type LocalUniform<T> = { value: T };
+type Uniforms = {
+  uTime: LocalUniform<number>;
+  uResolution: LocalUniform<THREE.Vector2>;
+  uMouse: LocalUniform<THREE.Vector2>;
+  uTopColor: LocalUniform<THREE.Vector3>;
+  uBottomColor: LocalUniform<THREE.Vector3>;
+  uIntensity: LocalUniform<number>;
+  uInteractive: LocalUniform<boolean>;
+  uGlowAmount: LocalUniform<number>;
+  uPillarWidth: LocalUniform<number>;
+  uPillarHeight: LocalUniform<number>;
+  uNoiseIntensity: LocalUniform<number>;
+  uRotCos: LocalUniform<number>;
+  uRotSin: LocalUniform<number>;
+  uPillarRotCos: LocalUniform<number>;
+  uPillarRotSin: LocalUniform<number>;
+  uWaveSin: LocalUniform<number>;
+  uWaveCos: LocalUniform<number>;
 };
 
 export default function LightPillar({
@@ -49,58 +70,59 @@ export default function LightPillar({
   const rotationSpeedRef = useRef(rotationSpeed);
   const [webGLSupported, setWebGLSupported] = useState(true);
 
+  const parseColor = (hex: string) => {
+    const h = hex.replace(/^#/, "");
+    const bigint = parseInt(h, 16);
+    const r = ((bigint >> 16) & 255) / 255;
+    const g = ((bigint >> 8) & 255) / 255;
+    const b = (bigint & 255) / 255;
+    return new THREE.Vector3(r, g, b);
+  };
+
+  // quick WebGL support check
   useEffect(() => {
     const canvas = document.createElement("canvas");
     const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-
     if (!gl) {
-      setWebGLSupported(false);
+      // avoid synchronous setState in effect body
+      setTimeout(() => setWebGLSupported(false), 0);
     }
   }, []);
 
+  // Main setup effect (runs once or when major visual props change)
+  // Recreate renderer if critical visual settings change.
   useEffect(() => {
-    if (!containerRef.current || !webGLSupported) {
-      return;
-    }
+    if (!containerRef.current || !webGLSupported) return;
 
     const container = containerRef.current;
     const width = container.clientWidth;
     const height = container.clientHeight;
+
     const scene = new THREE.Scene();
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     sceneRef.current = scene;
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     cameraRef.current = camera;
 
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const isLowEndDevice = isMobile || (typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4);
 
     let effectiveQuality: Quality = quality;
-    if (isLowEndDevice && quality === "high") {
-      effectiveQuality = "medium";
-    }
-    if (isMobile && quality !== "low") {
-      effectiveQuality = "low";
-    }
+    if (isLowEndDevice && quality === "high") effectiveQuality = "medium";
+    if (isMobile && quality !== "low") effectiveQuality = "low";
 
-    const qualitySettings: Record<Quality, { iterations: number; waveIterations: number; pixelRatio: number; precision: "mediump" | "highp"; stepMultiplier: number }> = {
+    const qualitySettings: Record<Quality, { iterations: number; waveIterations: number; pixelRatio: number; precision: string; stepMultiplier: number }> = {
       low: { iterations: 24, waveIterations: 1, pixelRatio: 0.5, precision: "mediump", stepMultiplier: 1.5 },
       medium: { iterations: 40, waveIterations: 2, pixelRatio: 0.65, precision: "mediump", stepMultiplier: 1.2 },
-      high: { iterations: 80, waveIterations: 4, pixelRatio: Math.min(window.devicePixelRatio, 2), precision: "highp", stepMultiplier: 1 },
-    };
+      high: { iterations: 80, waveIterations: 4, pixelRatio: Math.min(window.devicePixelRatio, 2), precision: "highp", stepMultiplier: 1.0 },
+    } as const;
 
     const settings = qualitySettings[effectiveQuality];
 
     let renderer: THREE.WebGLRenderer;
     try {
-      renderer = new THREE.WebGLRenderer({
-        antialias: false,
-        alpha: true,
-        powerPreference: effectiveQuality === "high" ? "high-performance" : "low-power",
-        stencil: false,
-        depth: false,
-      });
+      renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: effectiveQuality === "high" ? "high-performance" : "low-power" });
     } catch {
-      setWebGLSupported(false);
+      setTimeout(() => setWebGLSupported(false), 0);
       return;
     }
 
@@ -108,11 +130,6 @@ export default function LightPillar({
     renderer.setPixelRatio(settings.pixelRatio);
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
-
-    const parseColor = (hex: string) => {
-      const color = new THREE.Color(hex);
-      return new THREE.Vector3(color.r, color.g, color.b);
-    };
 
     const vertexShader = `
       varying vec2 vUv;
@@ -124,7 +141,6 @@ export default function LightPillar({
 
     const fragmentShader = `
       precision ${settings.precision} float;
-
       uniform float uTime;
       uniform vec2 uResolution;
       uniform vec2 uMouse;
@@ -143,18 +159,14 @@ export default function LightPillar({
       uniform float uWaveSin;
       uniform float uWaveCos;
       varying vec2 vUv;
-
       const float STEP_MULT = ${settings.stepMultiplier.toFixed(1)};
       const int MAX_ITER = ${settings.iterations};
       const int WAVE_ITER = ${settings.waveIterations};
-
       void main() {
         vec2 uv = (vUv * 2.0 - 1.0) * vec2(uResolution.x / uResolution.y, 1.0);
         uv = vec2(uPillarRotCos * uv.x - uPillarRotSin * uv.y, uPillarRotSin * uv.x + uPillarRotCos * uv.y);
-
         vec3 ro = vec3(0.0, 0.0, -10.0);
         vec3 rd = normalize(vec3(uv, 1.0));
-
         float rotC = uRotCos;
         float rotS = uRotSin;
         if (uInteractive && (uMouse.x != 0.0 || uMouse.y != 0.0)) {
@@ -162,17 +174,13 @@ export default function LightPillar({
           rotC = cos(a);
           rotS = sin(a);
         }
-
         vec3 col = vec3(0.0);
         float t = 0.1;
-
         for (int i = 0; i < MAX_ITER; i++) {
           vec3 p = ro + rd * t;
           p.xz = vec2(rotC * p.x - rotS * p.z, rotS * p.x + rotC * p.z);
-
           vec3 q = p;
           q.y = p.y * uPillarHeight + uTime;
-
           float freq = 1.0;
           float amp = 1.0;
           for (int j = 0; j < WAVE_ITER; j++) {
@@ -181,27 +189,20 @@ export default function LightPillar({
             freq *= 2.0;
             amp *= 0.5;
           }
-
           float d = length(cos(q.xz)) - 0.2;
           float bound = length(p.xz) - uPillarWidth;
           float k = 4.0;
           float h = max(k - abs(d - bound), 0.0);
           d = max(d, bound) + h * h * 0.0625 / k;
           d = abs(d) * 0.15 + 0.01;
-
           float grad = clamp((15.0 - p.y) / 30.0, 0.0, 1.0);
           col += mix(uBottomColor, uTopColor, grad) / d;
-
           t += d * STEP_MULT;
-          if (t > 50.0) {
-            break;
-          }
+          if (t > 50.0) break;
         }
-
         float widthNorm = uPillarWidth / 3.0;
         col = tanh(col * uGlowAmount / widthNorm);
         col -= fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) / 15.0 * uNoiseIntensity;
-
         gl_FragColor = vec4(col * uIntensity, 1.0);
       }
     `;
@@ -233,9 +234,11 @@ export default function LightPillar({
         uWaveCos: { value: waveCos },
       },
       transparent: true,
-      depthWrite: false,
-      depthTest: false,
     });
+    // set depth flags (some three typings may omit these properties)
+    ((material as unknown) as { depthWrite?: boolean; depthTest?: boolean }).depthWrite = false;
+    ((material as unknown) as { depthWrite?: boolean; depthTest?: boolean }).depthTest = false;
+
     materialRef.current = material;
 
     const geometry = new THREE.PlaneGeometry(2, 2);
@@ -245,65 +248,49 @@ export default function LightPillar({
 
     let mouseMoveTimeout: number | null = null;
     const handleMouseMove = (event: MouseEvent) => {
-      if (!interactive || mouseMoveTimeout) {
-        return;
-      }
-
-      mouseMoveTimeout = window.setTimeout(() => {
-        mouseMoveTimeout = null;
-      }, 16);
-
+      if (!interactive) return;
+      if (mouseMoveTimeout) return;
+      mouseMoveTimeout = window.setTimeout(() => (mouseMoveTimeout = null), 16);
       const rect = container.getBoundingClientRect();
       const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       mouseRef.current.set(x, y);
     };
 
-    if (interactive) {
-      container.addEventListener("mousemove", handleMouseMove, { passive: true });
-    }
+    if (interactive) container.addEventListener("mousemove", handleMouseMove, { passive: true });
 
     let lastTime = performance.now();
     const targetFPS = effectiveQuality === "low" ? 30 : 60;
     const frameTime = 1000 / targetFPS;
 
+    
     const animate = (currentTime: number) => {
-      if (!materialRef.current || !rendererRef.current || !sceneRef.current || !cameraRef.current) {
-        return;
-      }
-
+      if (!materialRef.current || !rendererRef.current || !sceneRef.current || !cameraRef.current) return;
       const deltaTime = currentTime - lastTime;
-
       if (deltaTime >= frameTime) {
         timeRef.current += 0.016 * rotationSpeedRef.current;
         const t = timeRef.current;
-        materialRef.current.uniforms.uTime.value = t;
-        materialRef.current.uniforms.uRotCos.value = Math.cos(t * 0.3);
-        materialRef.current.uniforms.uRotSin.value = Math.sin(t * 0.3);
-        rendererRef.current.render(sceneRef.current, cameraRef.current);
+        const uniforms = materialRef.current.uniforms as unknown as Uniforms;
+        uniforms.uTime.value = t;
+        uniforms.uRotCos.value = Math.cos(t * 0.3);
+        uniforms.uRotSin.value = Math.sin(t * 0.3);
+        rendererRef.current.render(sceneRef.current!, cameraRef.current!);
         lastTime = currentTime - (deltaTime % frameTime);
       }
-
       rafRef.current = window.requestAnimationFrame(animate);
     };
-
     rafRef.current = window.requestAnimationFrame(animate);
 
     let resizeTimeout: number | null = null;
     const handleResize = () => {
-      if (resizeTimeout) {
-        window.clearTimeout(resizeTimeout);
-      }
-
+      if (resizeTimeout) window.clearTimeout(resizeTimeout);
       resizeTimeout = window.setTimeout(() => {
-        if (!rendererRef.current || !materialRef.current || !containerRef.current) {
-          return;
-        }
-
+        if (!rendererRef.current || !materialRef.current || !containerRef.current) return;
         const newWidth = containerRef.current.clientWidth;
         const newHeight = containerRef.current.clientHeight;
         rendererRef.current.setSize(newWidth, newHeight);
-        materialRef.current.uniforms.uResolution.value.set(newWidth, newHeight);
+        const uniforms = materialRef.current.uniforms as unknown as Uniforms;
+        uniforms.uResolution.value.set(newWidth, newHeight);
       }, 150);
     };
 
@@ -311,26 +298,15 @@ export default function LightPillar({
 
     return () => {
       window.removeEventListener("resize", handleResize);
-      if (interactive) {
-        container.removeEventListener("mousemove", handleMouseMove);
-      }
-      if (rafRef.current) {
-        window.cancelAnimationFrame(rafRef.current);
-      }
+      if (interactive) container.removeEventListener("mousemove", handleMouseMove);
+      if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
       if (rendererRef.current) {
         rendererRef.current.dispose();
         rendererRef.current.forceContextLoss();
-        if (container.contains(rendererRef.current.domElement)) {
-          container.removeChild(rendererRef.current.domElement);
-        }
+        if (container.contains(rendererRef.current.domElement)) container.removeChild(rendererRef.current.domElement);
       }
-      if (materialRef.current) {
-        materialRef.current.dispose();
-      }
-      if (geometryRef.current) {
-        geometryRef.current.dispose();
-      }
-
+      if (materialRef.current) materialRef.current.dispose();
+      if (geometryRef.current) geometryRef.current.dispose();
       rendererRef.current = null;
       materialRef.current = null;
       sceneRef.current = null;
@@ -338,81 +314,70 @@ export default function LightPillar({
       geometryRef.current = null;
       rafRef.current = null;
     };
-  }, [webGLSupported, quality, interactive]);
+  }, [webGLSupported, topColor, bottomColor, intensity, interactive, noiseIntensity, pillarHeight, pillarRotation, pillarWidth, glowAmount, quality]);
 
   useEffect(() => {
     rotationSpeedRef.current = rotationSpeed;
   }, [rotationSpeed]);
 
   useEffect(() => {
-    if (!materialRef.current) {
-      return;
-    }
-    const color = new THREE.Color(topColor);
-    materialRef.current.uniforms.uTopColor.value = new THREE.Vector3(color.r, color.g, color.b);
+    if (!materialRef.current) return;
+    const uniforms = materialRef.current.uniforms as unknown as Uniforms;
+    uniforms.uTopColor.value = parseColor(topColor);
   }, [topColor]);
 
   useEffect(() => {
-    if (!materialRef.current) {
-      return;
-    }
-    const color = new THREE.Color(bottomColor);
-    materialRef.current.uniforms.uBottomColor.value = new THREE.Vector3(color.r, color.g, color.b);
+    if (!materialRef.current) return;
+    const uniforms = materialRef.current.uniforms as unknown as Uniforms;
+    uniforms.uBottomColor.value = parseColor(bottomColor);
   }, [bottomColor]);
 
   useEffect(() => {
-    if (!materialRef.current) {
-      return;
-    }
-    materialRef.current.uniforms.uIntensity.value = intensity;
+    if (!materialRef.current) return;
+    const uniforms = materialRef.current.uniforms as unknown as Uniforms;
+    uniforms.uIntensity.value = intensity as number;
   }, [intensity]);
 
   useEffect(() => {
-    if (!materialRef.current) {
-      return;
-    }
-    materialRef.current.uniforms.uInteractive.value = interactive;
+    if (!materialRef.current) return;
+    const uniforms = materialRef.current.uniforms as unknown as Uniforms;
+    uniforms.uInteractive.value = interactive as boolean;
   }, [interactive]);
 
   useEffect(() => {
-    if (!materialRef.current) {
-      return;
-    }
-    materialRef.current.uniforms.uGlowAmount.value = glowAmount;
+    if (!materialRef.current) return;
+    const uniforms = materialRef.current.uniforms as unknown as Uniforms;
+    uniforms.uGlowAmount.value = glowAmount as number;
   }, [glowAmount]);
 
   useEffect(() => {
-    if (!materialRef.current) {
-      return;
-    }
-    materialRef.current.uniforms.uPillarWidth.value = pillarWidth;
+    if (!materialRef.current) return;
+    const uniforms = materialRef.current.uniforms as unknown as Uniforms;
+    uniforms.uPillarWidth.value = pillarWidth as number;
   }, [pillarWidth]);
 
   useEffect(() => {
-    if (!materialRef.current) {
-      return;
-    }
-    materialRef.current.uniforms.uPillarHeight.value = pillarHeight;
+    if (!materialRef.current) return;
+    const uniforms = materialRef.current.uniforms as unknown as Uniforms;
+    uniforms.uPillarHeight.value = pillarHeight as number;
   }, [pillarHeight]);
 
   useEffect(() => {
-    if (!materialRef.current) {
-      return;
-    }
-    materialRef.current.uniforms.uNoiseIntensity.value = noiseIntensity;
+    if (!materialRef.current) return;
+    const uniforms = materialRef.current.uniforms as unknown as Uniforms;
+    uniforms.uNoiseIntensity.value = noiseIntensity as number;
   }, [noiseIntensity]);
 
   useEffect(() => {
-    if (!materialRef.current) {
-      return;
-    }
+    if (!materialRef.current) return;
     const pillarRotRad = (pillarRotation * Math.PI) / 180;
-    materialRef.current.uniforms.uPillarRotCos.value = Math.cos(pillarRotRad);
-    materialRef.current.uniforms.uPillarRotSin.value = Math.sin(pillarRotRad);
+    const uniforms = materialRef.current.uniforms as unknown as Uniforms;
+    uniforms.uPillarRotCos.value = Math.cos(pillarRotRad);
+    uniforms.uPillarRotSin.value = Math.sin(pillarRotRad);
   }, [pillarRotation]);
 
   if (!webGLSupported) {
-    return <div className={`${styles.lightPillarFallback} ${className}`} style={{ mixBlendMode }}>WebGL not supported</div>;
+    return <div className={`${styles.lightPillarFallback} ${className}`} style={{ mixBlendMode }}>{/* fallback */}WebGL not supported</div>;
   }
 
   return <div ref={containerRef} className={`${styles.lightPillarContainer} ${className}`} style={{ mixBlendMode }} />;
