@@ -96,7 +96,6 @@ export default function LightPillar({
         antialias: false,
         alpha: true,
         powerPreference: effectiveQuality === "high" ? "high-performance" : "low-power",
-        precision: settings.precision,
         stencil: false,
         depth: false,
       });
