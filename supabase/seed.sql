@@ -1,3 +1,37 @@
+insert into public.collections (
+  slug,
+  number,
+  title,
+  display_title,
+  tagline,
+  mood,
+  logo,
+  logo_sheet,
+  bg_class,
+  text_class,
+  font_class,
+  sort_order
+) values
+  ('thread-classics', '01', 'Thread Classics', 'Thread Classics', 'The Foundation Pieces', 'Refined heritage basics for students who want quiet quality.', 1, 1, 'bg-woven-bg', 'text-woven-text', 'font-display', 1),
+  ('minimal-edit', '02', 'Minimal Edit', 'minimal edit', 'Less. Meant.', 'Japanese-inspired cuts, muted tones, and considered whitespace.', 5, 1, 'bg-woven-surface', 'text-woven-text', 'font-syne', 2),
+  ('digital-weave', '03', 'Digital Weave', 'DIGITAL WEAVE', 'Generated. Designed. Worn.', 'Pixelated, technical, and built for late-night labs.', 3, 1, 'bg-woven-dark', 'text-woven-inverse', 'font-grotesk', 3),
+  ('street-stitch', '04', 'Street Stitch', 'STREET STITCH', 'Built Different.', 'Raw, oversized, noisy, and tuned to campus subculture.', 9, 1, 'bg-woven-bg', 'text-woven-text', 'font-bebas', 4),
+  ('glitch-drop', '05', 'Glitch Drop', 'GLITCH DROP', 'Think. Create. Wear.', 'Limited digital distortion with a real countdown pulse.', 6, 1, 'bg-woven-near-black', 'text-woven-inverse', 'font-rajdhani', 5),
+  ('society', '06', 'Society Collection', 'Society Collection', 'Est. 2025. For Those Who Lead.', 'Academic heritage for debate nights, MUN floors, and formal campus rituals.', 7, 1, 'bg-woven-tan', 'text-woven-text', 'font-playfair', 6)
+on conflict (slug) do update set
+  number = excluded.number,
+  title = excluded.title,
+  display_title = excluded.display_title,
+  tagline = excluded.tagline,
+  mood = excluded.mood,
+  logo = excluded.logo,
+  logo_sheet = excluded.logo_sheet,
+  bg_class = excluded.bg_class,
+  text_class = excluded.text_class,
+  font_class = excluded.font_class,
+  sort_order = excluded.sort_order;
+
+
 insert into public.products (
   sku,
   slug,
