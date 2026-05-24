@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   fallbackCatalog,
@@ -15,6 +16,7 @@ type CartLine = {
   slug: string;
   name: string;
   price: string;
+  pricePkr: number;
   size: string;
 };
 
@@ -122,11 +124,11 @@ export function ProductCard({ product, collection }: { product: Product; collect
   const fontClass = collection?.fontClass ?? "font-display";
 
   return (
-    <article className="group overflow-hidden rounded-card border border-current/15 bg-white/60 text-current shadow-sm backdrop-blur transition duration-hover ease-woven hover:-translate-y-1 hover:border-woven-accent">
+    <article className="group flex h-full flex-col overflow-hidden rounded-card border border-current/15 bg-white/80 text-current shadow-sm backdrop-blur transition duration-hover ease-woven hover:-translate-y-1 hover:border-woven-accent">
       <Link href={`/products/${product.slug}`} className="block focus:outline-none focus:ring-2 focus:ring-woven-accent">
         <ProductArtwork product={product} />
       </Link>
-      <div className="space-y-4 p-4">
+      <div className="flex flex-1 flex-col space-y-4 p-4">
         <div className="flex items-start justify-between gap-4">
           <div>
             <Link href={`/products/${product.slug}`} className={`${fontClass} text-2xl leading-tight hover:underline`}>
@@ -134,7 +136,7 @@ export function ProductCard({ product, collection }: { product: Product; collect
             </Link>
             <p className="mt-1 font-mono text-xs uppercase tracking-[0.14em] opacity-70">{product.price}</p>
           </div>
-          <button type="button" aria-label={`Save ${product.name}`} className="grid h-11 w-11 place-items-center border border-current/20 text-xs uppercase transition hover:border-woven-accent hover:text-woven-accent">
+          <button type="button" aria-label={`Save ${product.name}`} className="grid h-11 w-11 shrink-0 place-items-center border border-current/20 text-xs uppercase transition hover:border-woven-accent hover:text-woven-accent">
             Save
           </button>
         </div>
@@ -152,7 +154,7 @@ export function ProductCard({ product, collection }: { product: Product; collect
             </button>
           ))}
         </div>
-        <button type="button" className={buttonClasses("primary")}>
+        <button type="button" className={`${buttonClasses("primary")} mt-auto`}>
           {product.status === "Notify Me" ? "Notify Me" : "Quick Add"}
         </button>
       </div>
@@ -199,12 +201,46 @@ function ThemeSwitcher({
 }
 
 function Navigation({ catalog, activeTheme, cartCount }: { catalog: CatalogData; activeTheme: Theme; cartCount: number }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [ripple, setRipple] = useState<{ x: number; y: number; theme: ThemeId } | null>(null);
 
   function handleThemeClick(event: React.MouseEvent<HTMLAnchorElement>, themeId: ThemeId) {
+    event.preventDefault();
+
+    const href = themeHref[themeId];
+
+    if (themeId === activeTheme.id) {
+      return;
+    }
+
+    const radius = Math.hypot(
+      Math.max(event.clientX, window.innerWidth - event.clientX),
+      Math.max(event.clientY, window.innerHeight - event.clientY),
+    );
+
+    document.documentElement.style.setProperty("--theme-x", `${event.clientX}px`);
+    document.documentElement.style.setProperty("--theme-y", `${event.clientY}px`);
+    document.documentElement.style.setProperty("--theme-radius", `${Math.ceil(radius)}px`);
+
+    const viewTransition = (
+      document as Document & {
+        startViewTransition?: (callback: () => void) => { finished: Promise<void> };
+      }
+    ).startViewTransition;
+
+    if (viewTransition && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      viewTransition(() => {
+        router.push(href);
+      });
+      return;
+    }
+
     setRipple({ x: event.clientX, y: event.clientY, theme: themeId });
-    window.setTimeout(() => setRipple(null), 900);
+    window.setTimeout(() => {
+      setRipple(null);
+      window.location.assign(href);
+    }, 420);
   }
 
   return (
@@ -227,7 +263,7 @@ function Navigation({ catalog, activeTheme, cartCount }: { catalog: CatalogData;
               <span className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center bg-woven-accent px-1 font-mono text-2xs text-woven-text">{cartCount}</span>
             </Link>
           </div>
-          <button type="button" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen((value) => !value)} className="grid h-11 w-11 place-items-center border border-current md:hidden">
+          <button type="button" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen((value) => !value)} className={`grid h-11 w-11 place-items-center border border-current text-xs uppercase ${activeTheme.navTextClass} md:hidden`}>
             Menu
           </button>
         </nav>
@@ -375,7 +411,7 @@ export function ThemeExperience({ catalog = fallbackCatalog, themeId = "classic"
   const activeTheme = getTheme(catalog, themeId);
   const collections = getThemeCollections(catalog, activeTheme.id);
   const products = getThemeProducts(catalog, activeTheme.id);
-  const [cartLines] = useState<CartLine[]>(products[0] ? [{ slug: products[0].slug, name: products[0].name, price: products[0].price, size: "M" }] : []);
+  const [cartLines] = useState<CartLine[]>(products[0] ? [{ slug: products[0].slug, name: products[0].name, price: products[0].price, pricePkr: priceToNumber(products[0].price), size: "M" }] : []);
 
   return (
     <div className={activeTheme.pageClass} data-theme={activeTheme.id}>
@@ -538,6 +574,132 @@ export function SearchPage({ catalog = fallbackCatalog }: { catalog?: CatalogDat
   );
 }
 
+function CheckoutForm({ products }: { products: Product[] }) {
+  const items = products.map((product) => ({
+    productSlug: product.slug,
+    name: product.name,
+    pricePkr: priceToNumber(product.price),
+    quantity: 1,
+    size: "M",
+  }));
+  const subtotal = items.reduce((sum, item) => sum + item.pricePkr * item.quantity, 0);
+  const shipping = subtotal > 0 ? 250 : 0;
+  const total = subtotal + shipping;
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "bank_transfer" | "card">("cod");
+  const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus("saving");
+    setMessage("");
+
+    const form = new FormData(event.currentTarget);
+    const response = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        customerName: form.get("customerName"),
+        email: form.get("email"),
+        phone: form.get("phone"),
+        address: form.get("address"),
+        city: form.get("city"),
+        paymentMethod,
+        items,
+      }),
+    });
+    const result = (await response.json()) as { orderNumber?: string; paymentStatus?: string; totalPkr?: number; error?: string };
+
+    if (!response.ok) {
+      setStatus("error");
+      setMessage(result.error ?? "Checkout failed.");
+      return;
+    }
+
+    setStatus("success");
+    setMessage(`Order ${result.orderNumber} created. Payment status: ${result.paymentStatus}.`);
+  }
+
+  return (
+    <div className="mt-12 grid gap-8 lg:grid-cols-[1fr_380px]">
+      <form onSubmit={handleSubmit} className="grid gap-5">
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="checkout-field">
+            <span>Name</span>
+            <input name="customerName" required placeholder="Full name" />
+          </label>
+          <label className="checkout-field">
+            <span>Email</span>
+            <input name="email" required type="email" placeholder="you@example.com" />
+          </label>
+          <label className="checkout-field">
+            <span>Phone</span>
+            <input name="phone" required placeholder="+92..." />
+          </label>
+          <label className="checkout-field">
+            <span>City</span>
+            <input name="city" required placeholder="City" />
+          </label>
+        </div>
+        <label className="checkout-field">
+          <span>Shipping Address</span>
+          <textarea name="address" required rows={4} placeholder="House, street, area" />
+        </label>
+        <div className="grid gap-3">
+          <p className="font-mono text-2xs uppercase tracking-[0.18em] text-woven-accent">Payment Method</p>
+          {[
+            ["cod", "Cash on Delivery", "Pay when the order arrives."],
+            ["bank_transfer", "Bank Transfer", "Create the order and complete transfer manually."],
+            ["card", "Card Placeholder", "Creates a pending payment record for provider integration."],
+          ].map(([value, title, copy]) => (
+            <label key={value} className={`payment-option ${paymentMethod === value ? "is-selected" : ""}`}>
+              <input
+                type="radio"
+                name="paymentMethod"
+                value={value}
+                checked={paymentMethod === value}
+                onChange={() => setPaymentMethod(value as "cod" | "bank_transfer" | "card")}
+              />
+              <span>
+                <strong>{title}</strong>
+                <small>{copy}</small>
+              </span>
+            </label>
+          ))}
+        </div>
+        <button type="submit" disabled={status === "saving"} className={buttonClasses("primary")}>
+          {status === "saving" ? "Creating Order" : "Place Order"}
+        </button>
+        {message && (
+          <p className={`border p-4 font-body text-sm ${status === "success" ? "border-emerald-500 text-emerald-700" : "border-red-500 text-red-700"}`}>
+            {message}
+          </p>
+        )}
+      </form>
+      <aside className="h-fit border border-woven-border bg-woven-surface p-6">
+        <p className="font-mono text-2xs uppercase tracking-[0.18em]">Order Summary</p>
+        <div className="mt-5 grid gap-4">
+          {products.map((product) => (
+            <div key={product.id} className="grid grid-cols-[72px_1fr] gap-3">
+              <ProductArtwork product={product} />
+              <div>
+                <p className="font-display text-2xl leading-tight">{product.name}</p>
+                <p className="mt-1 font-mono text-2xs uppercase tracking-[0.14em] text-woven-muted">Size M / Qty 1</p>
+                <p className="mt-2 font-mono text-xs">{product.price}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 grid gap-2 border-t border-woven-border pt-5 font-body text-sm">
+          <div className="flex justify-between"><span>Subtotal</span><span>PKR {subtotal.toLocaleString("en-US")}</span></div>
+          <div className="flex justify-between"><span>Shipping</span><span>PKR {shipping.toLocaleString("en-US")}</span></div>
+          <div className="flex justify-between font-bold"><span>Total</span><span>PKR {total.toLocaleString("en-US")}</span></div>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
 export function SimpleContentPage({ type, catalog = fallbackCatalog }: { type: "about" | "cart" | "checkout" | "account" | "legal"; catalog?: CatalogData }) {
   const products = useMemo(() => catalog.products.slice(0, 2), [catalog.products]);
   const subtotal = products.reduce((sum, product) => sum + priceToNumber(product.price), 0);
@@ -551,7 +713,10 @@ export function SimpleContentPage({ type, catalog = fallbackCatalog }: { type: "
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-woven-accent">Woven</p>
           <h1 className="mt-4 max-w-4xl font-display text-7xl leading-none md:text-10xl">{title}</h1>
           {type === "cart" || type === "checkout" ? (
-            <div className="mt-12 grid gap-8 lg:grid-cols-[1fr_380px]">
+            type === "checkout" ? (
+              <CheckoutForm products={products} />
+            ) : (
+              <div className="mt-12 grid gap-8 lg:grid-cols-[1fr_380px]">
               <div className="grid gap-4">
                 {products.map((product) => <div key={product.id} className="grid gap-4 border border-woven-border p-4 sm:grid-cols-[120px_1fr_auto]"><ProductArtwork product={product} /><div><h2 className="font-display text-4xl">{product.name}</h2><p className="mt-2 font-body text-sm text-woven-muted">Size M / Quantity 1</p></div><p className="font-mono text-sm">{product.price}</p></div>)}
               </div>
@@ -561,6 +726,7 @@ export function SimpleContentPage({ type, catalog = fallbackCatalog }: { type: "
                 <Link href="/checkout/delivery" className={`${buttonClasses("primary")} mt-6 w-full`}>Continue</Link>
               </aside>
             </div>
+            )
           ) : (
             <div className="mt-12 grid gap-6 md:grid-cols-3">
               {[["01", "Choose A Theme", "Move between Classic, Summer, and Winter as complete clothing worlds."], ["02", "Find Your Pieces", "Browse plain essentials, summer outfits, winter layers, and formal edits."], ["03", "Wear Your Way", "Build a wardrobe around the weather, the day, and your own rhythm."]].map(([number, heading, copy]) => (

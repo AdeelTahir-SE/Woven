@@ -73,7 +73,6 @@ export async function getCatalogData(): Promise<CatalogData> {
       products: catalogProducts,
     };
   } catch (error) {
-    console.warn(error);
     return fallbackCatalog;
   }
 }

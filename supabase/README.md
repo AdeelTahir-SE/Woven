@@ -9,6 +9,7 @@ For an existing Supabase project that already has the older Woven tables, run th
 
 1. `20260524_theme_system.sql`
 2. `20260524_product_images_storage.sql`
+3. `20260524_checkout_payments.sql`
 
 Then copy `.env.example` to `.env.local` and fill in:
 
@@ -38,3 +39,13 @@ The app renders images from:
 ```
 
 If an image has not been uploaded yet, the browser may show a broken external image; upload the file at the matching path to replace it.
+
+## Checkout Payments
+
+The checkout API creates:
+
+- one `orders` row
+- matching `order_items` rows
+- one `payments` row
+
+Current payment methods are `cod`, `bank_transfer`, and `card`. The `card` method intentionally creates a pending payment record only; connect a PCI-compliant payment provider before collecting card details.

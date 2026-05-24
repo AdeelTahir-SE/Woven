@@ -62,6 +62,27 @@
 :root {
   --logo-sheet-1: url("/images/logos/woven-logo-sheet-1.png");
   --logo-sheet-2: url("/images/logos/woven-logo-sheet-2.png");
+  --theme-x: 50vw;
+  --theme-y: 50vh;
+  --theme-radius: 150vmax;
+  --expo-out: linear(
+    0 0%,
+    0.1684 2.66%,
+    0.3165 5.49%,
+    0.446 8.52%,
+    0.5581 11.78%,
+    0.6535 15.29%,
+    0.7341 19.11%,
+    0.8011 23.3%,
+    0.8557 27.93%,
+    0.8962 32.68%,
+    0.9283 38.01%,
+    0.9529 44.08%,
+    0.9711 51.14%,
+    0.9833 59.06%,
+    0.9915 68.74%,
+    1 100%
+  );
   background: var(--color-woven-bg);
   color: var(--color-woven-text);
 }
@@ -181,7 +202,7 @@ input {
 .button-primary {
   border: 1px solid var(--color-woven-text);
   background: var(--color-woven-text);
-  color: var(--color-woven-inverse);
+  color: var(--color-woven-bg);
 }
 
 .button-primary:hover {
@@ -197,7 +218,7 @@ input {
 
 .button-ghost:hover {
   background: var(--color-woven-text);
-  color: var(--color-woven-inverse);
+  color: var(--color-woven-bg);
 }
 
 .button-inverse {
@@ -301,6 +322,8 @@ input {
   border: 1px solid currentColor;
   padding: 3px;
   color: inherit;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .theme-switcher-link {
@@ -328,6 +351,32 @@ input {
   border-radius: 999px;
   transform: translate(-50%, -50%) scale(0);
   animation: theme-ripple 850ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+::view-transition-group(root) {
+  animation-timing-function: var(--expo-out);
+}
+
+::view-transition-image-pair(root) {
+  isolation: isolate;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 850ms;
+  animation-fill-mode: both;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  animation: none;
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+  clip-path: circle(0 at var(--theme-x) var(--theme-y));
+  animation-name: theme-view-reveal;
 }
 
 .theme-ripple::after,
@@ -503,6 +552,68 @@ input {
   letter-spacing: 0.16em;
 }
 
+.checkout-field {
+  display: grid;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.checkout-field input,
+.checkout-field textarea {
+  width: 100%;
+  border: 1px solid var(--color-woven-border);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 14px;
+  color: var(--color-woven-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+  outline: none;
+}
+
+.checkout-field input:focus,
+.checkout-field textarea:focus {
+  border-color: var(--color-woven-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-woven-accent) 24%, transparent);
+}
+
+.payment-option {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 12px;
+  border: 1px solid var(--color-woven-border);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 16px;
+  cursor: pointer;
+}
+
+.payment-option.is-selected {
+  border-color: var(--color-woven-text);
+  box-shadow: inset 0 0 0 1px var(--color-woven-text);
+}
+
+.payment-option strong,
+.payment-option small {
+  display: block;
+}
+
+.payment-option strong {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.payment-option small {
+  margin-top: 6px;
+  color: var(--color-woven-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
 @keyframes letter-in {
   to {
     opacity: 1;
@@ -550,6 +661,12 @@ input {
   to {
     opacity: 0;
     transform: translate(-50%, -50%) scale(180);
+  }
+}
+
+@keyframes theme-view-reveal {
+  to {
+    clip-path: circle(var(--theme-radius) at var(--theme-x) var(--theme-y));
   }
 }
 
