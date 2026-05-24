@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import ColorBends from "@/components/color-bends";
-import LightPillar from "@/components/light-pillar";
+import LightPillar from "./light-pillar";
 import {
   fallbackCatalog,
   type CatalogData,
