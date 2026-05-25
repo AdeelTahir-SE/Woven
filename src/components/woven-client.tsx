@@ -989,23 +989,140 @@ function InfoCards({ type }: { type: string }) {
 }
 
 function CheckoutForm({ products }: { products: CartProduct[] }) {
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "cod" | "bank_transfer">("card");
+  const [clientSecret, setClientSecret] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
+  const [customer, setCustomer] = useState({
+    customerName: "",
+    email: "",
+    phone: "",
+    city: "",
+    address: "",
+  });
   const subtotal = products.reduce((sum, product) => sum + priceToNumber(product.price) * product.cartQuantity, 0);
   const shipping = subtotal > 0 ? 250 : 0;
+  const items: CheckoutItem[] = products.map((product) => ({
+    productSlug: product.slug,
+    name: product.name,
+    pricePkr: priceToNumber(product.price),
+    quantity: product.cartQuantity,
+    size: product.cartSize,
+  }));
+
+  async function saveOrder(providerReference?: string) {
+    const response = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ...customer,
+        paymentMethod,
+        providerReference,
+        items,
+      }),
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error ?? "Checkout could not be saved.");
+    }
+
+    setStatus("success");
+    setMessage(`Order ${result.orderNumber} created. Payment status: ${result.paymentStatus}.`);
+  }
+
+  async function handleCheckout(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus("loading");
+    setMessage("");
+
+    try {
+      if (paymentMethod !== "card") {
+        await saveOrder();
+        return;
+      }
+
+      if (!stripePublishableKey || !stripePromise) {
+        throw new Error("Stripe publishable key is missing. Add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to enable card payments.");
+      }
+
+      const response = await fetch("/api/create-payment-intent", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.clientSecret) {
+        throw new Error(result.error ?? "Card payment could not be initialized.");
+      }
+
+      setClientSecret(result.clientSecret);
+      setStatus("idle");
+    } catch (error) {
+      setStatus("error");
+      setMessage(error instanceof Error ? error.message : "Checkout failed.");
+    }
+  }
+
+  function updateCustomer(field: keyof typeof customer, value: string) {
+    setCustomer((current) => ({ ...current, [field]: value }));
+  }
 
   return (
     <div className="woven-checkout-grid">
-      <form className="woven-checkout-form" onSubmit={(event) => event.preventDefault()}>
-        {["Full name", "Email", "Phone", "City"].map((field) => (
-          <label key={field}>
-            <span>{field}</span>
-            <input required type={field === "Email" ? "email" : "text"} />
-          </label>
-        ))}
+      <form className="woven-checkout-form" onSubmit={handleCheckout}>
+        <label>
+          <span>Full name</span>
+          <input required value={customer.customerName} onChange={(event) => updateCustomer("customerName", event.target.value)} />
+        </label>
+        <label>
+          <span>Email</span>
+          <input required type="email" value={customer.email} onChange={(event) => updateCustomer("email", event.target.value)} />
+        </label>
+        <label>
+          <span>Phone</span>
+          <input required value={customer.phone} onChange={(event) => updateCustomer("phone", event.target.value)} />
+        </label>
+        <label>
+          <span>City</span>
+          <input required value={customer.city} onChange={(event) => updateCustomer("city", event.target.value)} />
+        </label>
         <label className="woven-wide-field">
           <span>Shipping address</span>
-          <textarea rows={4} required />
+          <textarea rows={4} required value={customer.address} onChange={(event) => updateCustomer("address", event.target.value)} />
         </label>
-        <button className="woven-buy-button" type="submit">Place Order</button>
+        <div className="woven-payment-methods woven-wide-field">
+          {[
+            ["card", "Card"],
+            ["cod", "Cash On Delivery"],
+            ["bank_transfer", "Bank Transfer"],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              className={paymentMethod === value ? "is-active" : ""}
+              onClick={() => {
+                setPaymentMethod(value as "card" | "cod" | "bank_transfer");
+                setClientSecret("");
+                setMessage("");
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <button className="woven-buy-button" type="submit" disabled={status === "loading"}>
+          {status === "loading" ? "Preparing Checkout" : paymentMethod === "card" ? "Continue To Card Payment" : "Place Order"}
+        </button>
+        {message && <p className={`woven-checkout-message woven-wide-field ${status === "error" ? "is-error" : "is-success"}`}>{message}</p>}
+        {paymentMethod === "card" && clientSecret && stripePromise && (
+          <div className="woven-stripe-panel woven-wide-field">
+            <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe" } }}>
+              <StripePaymentForm items={items} customer={customer} onOrderSaved={saveOrder} />
+            </Elements>
+          </div>
+        )}
       </form>
       <aside className="woven-summary">
         <h2>Order Summary</h2>
@@ -1029,6 +1146,66 @@ function CheckoutForm({ products }: { products: CartProduct[] }) {
         </div>
       </aside>
     </div>
+  );
+}
+
+function StripePaymentForm({
+  items,
+  customer,
+  onOrderSaved,
+}: {
+  items: CheckoutItem[];
+  customer: { customerName: string; email: string; phone: string; city: string; address: string };
+  onOrderSaved: (providerReference?: string) => Promise<void>;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [status, setStatus] = useState<"idle" | "processing" | "error" | "success">("idle");
+  const [message, setMessage] = useState("");
+
+  async function handlePayment(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    setStatus("processing");
+    setMessage("");
+
+    const result = await stripe.confirmPayment({
+      elements,
+      redirect: "if_required",
+      confirmParams: {
+        return_url: `${window.location.origin}/checkout/confirm`,
+        receipt_email: customer.email,
+      },
+    });
+
+    if (result.error) {
+      setStatus("error");
+      setMessage(result.error.message ?? "Payment failed.");
+      return;
+    }
+
+    try {
+      await onOrderSaved(result.paymentIntent?.id);
+      setStatus("success");
+      setMessage(`Payment ${result.paymentIntent?.status ?? "confirmed"}. Your order is saved.`);
+    } catch (error) {
+      setStatus("error");
+      setMessage(error instanceof Error ? error.message : "Payment succeeded, but order save failed.");
+    }
+  }
+
+  return (
+    <form className="woven-stripe-form" onSubmit={handlePayment}>
+      <PaymentElement />
+      <button className="woven-buy-button" type="submit" disabled={!stripe || status === "processing"}>
+        {status === "processing" ? "Processing Payment" : "Pay Securely"}
+      </button>
+      {message && <p className={`woven-checkout-message ${status === "error" ? "is-error" : "is-success"}`}>{message}</p>}
+    </form>
   );
 }
 

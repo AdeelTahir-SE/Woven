@@ -1390,6 +1390,56 @@ img {
   grid-column: 1 / -1;
 }
 
+.woven-payment-methods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.woven-payment-methods button {
+  min-height: 40px;
+  border: 1px solid var(--color-woven-border);
+  background: transparent;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.woven-payment-methods button.is-active {
+  border-color: var(--color-woven-text);
+  background: var(--color-woven-text);
+  color: var(--color-woven-inverse);
+}
+
+.woven-checkout-message {
+  border: 1px solid var(--color-woven-border);
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.woven-checkout-message.is-error {
+  border-color: #a8262f;
+  color: #a8262f;
+}
+
+.woven-checkout-message.is-success {
+  border-color: #315e42;
+  color: #315e42;
+}
+
+.woven-stripe-panel {
+  border: 1px solid var(--color-woven-border);
+  background: rgba(255, 255, 255, 0.42);
+  padding: 18px;
+}
+
+.woven-stripe-form {
+  display: grid;
+  gap: 16px;
+}
+
 .woven-summary {
   align-content: start;
   border: 1px solid var(--color-woven-border);
