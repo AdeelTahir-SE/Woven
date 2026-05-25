@@ -291,58 +291,24 @@ function Navigation({ activeTheme, cartCount }: { activeTheme: Theme; cartCount:
 }
 
 function Hero({ theme }: { theme: Theme }) {
+  const heroImages = {
+    classic: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop",
+    summer: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop",
+    winter: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=2062&auto=format&fit=crop"
+  };
+
   return (
     <section id="hero" className={`hero-${theme.heroMedia} relative flex min-h-screen items-center justify-center overflow-hidden px-5 pt-[72px] text-center`}>
-      <div className="hero-media" aria-hidden="true">
-        {theme.heroMedia === "classic" && (
-          <ColorBends
-            className="classic-color-bends"
-            colors={["#f8f8f6", "#c8a96e", "#8b6e3a", "#111111"]}
-            rotation={38}
-            autoRotate={2}
-            speed={0.16}
-            scale={1.05}
-            frequency={0.82}
-            warpStrength={0.92}
-            mouseInfluence={0.65}
-            noise={0.08}
-            parallax={0.45}
-            iterations={3}
-            intensity={1.2}
-            bandWidth={5.4}
-            transparent={false}
-          />
-        )}
-        {theme.heroMedia === "summer" && (
-          <video className="hero-video" autoPlay muted loop playsInline poster="">
-            <source src="/videos/themes/summer/hero-section.mp4" type="video/mp4" />
-          </video>
-        )}
-        {theme.heroMedia === "winter" && (
-          <LightPillar
-            topColor="#f6feff"
-            bottomColor="#c8b9ff"
-            intensity={0.95}
-            rotationSpeed={0.08}
-            interactive={false}
-            glowAmount={0.01}
-            pillarWidth={2.6}
-            pillarHeight={0.6}
-            noiseIntensity={0.16}
-            pillarRotation={-12}
-            quality="medium"
-            mixBlendMode="screen"
-            className="winter-light-pillar"
-          />
-        )}
-        {theme.heroMedia === "summer" && <div className="summer-sky"><span /><span /><span /></div>}
+      <div className="absolute inset-0 z-0">
+        <img src={heroImages[theme.id as keyof typeof heroImages] || heroImages.classic} alt="Woven Editorial" className="h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/60" />
       </div>
-      <div className="relative z-10 mx-auto max-w-5xl">
-        <h1 className="font-display text-7xl font-light leading-none md:text-11xl">{theme.heroTitle}</h1>
-        <p className="mx-auto mt-6 max-w-2xl font-body text-lg leading-relaxed md:text-2xl">{theme.tagline}</p>
+      <div className="relative z-20 mx-auto max-w-5xl text-white">
+        <h1 className="font-display text-7xl font-light leading-none md:text-11xl drop-shadow-sm">{theme.heroTitle}</h1>
+        <p className="mx-auto mt-6 max-w-2xl font-body text-lg leading-relaxed md:text-2xl opacity-90 drop-shadow-sm">{theme.tagline}</p>
         <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-          <a href="#collections-strip" className={buttonClasses(theme.id === "winter" ? "ghost" : "primary")}>Explore Collections</a>
-          <Link href="/collections" className={buttonClasses("ghost")}>All Themes</Link>
+          <a href="#collections-strip" className={buttonClasses("inverse")}>Explore Collections</a>
+          <Link href="/collections" className={buttonClasses("inverse")}>All Themes</Link>
         </div>
       </div>
     </section>
@@ -440,15 +406,36 @@ export function Footer({ catalog = fallbackCatalog, activeThemeId = "classic" }:
         <div>
           <p className="font-display text-4xl italic tracking-[0.1em]">WOVEN</p>
           <p className="mt-3 max-w-xs font-body text-sm text-woven-inverse/65">Ideas Stitched Into Reality.</p>
+          <div className="mt-8">
+            <p className="font-mono text-2xs uppercase tracking-[0.22em] text-woven-accent">Contact</p>
+            <div className="mt-4 grid gap-2 font-body text-sm text-woven-inverse/70">
+              <a href="mailto:hello@woven.pk" className="hover:text-woven-accent transition-colors">hello@woven.pk</a>
+              <a href="https://wa.me/923000000000" target="_blank" rel="noopener noreferrer" className="hover:text-woven-accent transition-colors">WhatsApp Us</a>
+              <span className="text-woven-inverse/50">We reply within 24 hours</span>
+            </div>
+          </div>
+          <div className="mt-8 flex gap-4">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-woven-inverse/70 hover:text-woven-accent transition-colors">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clipRule="evenodd" /></svg>
+            </a>
+            <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-woven-inverse/70 hover:text-woven-accent transition-colors">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 2.23-1.11 4.46-2.9 5.8-1.7 1.27-3.93 1.77-6.02 1.33-2.09-.45-3.93-1.81-4.85-3.71-.93-1.92-1-4.21-.18-6.17.82-1.95 2.51-3.41 4.54-4.04 1.87-.58 3.98-.38 5.72.48l-.02 4.25c-1.12-.66-2.52-.92-3.8-.57-1.17.32-2.17 1.2-2.58 2.33-.4 1.14-.26 2.43.37 3.44.62 1.01 1.71 1.63 2.9 1.73 1.17.1 2.37-.3 3.19-1.15.82-.84 1.23-2.02 1.21-3.2-.04-5.32-.01-10.65-.02-15.98h4.03z"/></svg>
+            </a>
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-woven-inverse/70 hover:text-woven-accent transition-colors">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" /></svg>
+            </a>
+          </div>
         </div>
         <FooterColumn title="Themes" links={catalog.themes.map((theme) => [theme.label, themeHref[theme.id]])} />
         <FooterColumn title="Collections" links={collections.map((collection) => [collection.title, `/collections/${collection.slug}`])} />
         <div>
           <p className="font-display text-5xl italic">Stay In The Loop</p>
+          <p className="mt-3 font-body text-sm text-woven-inverse/70">New drops, restocks, and exclusive pieces. Straight to your inbox.</p>
           <form className="mt-5 flex border border-woven-inverse/25" onSubmit={(event) => event.preventDefault()}>
             <input type="email" aria-label="Email address" placeholder="you@example.com" className="min-w-0 flex-1 bg-transparent px-4 py-3 font-body text-sm outline-none placeholder:text-woven-inverse/35" />
-            <button type="submit" className="bg-woven-accent px-4 font-mono text-2xs uppercase tracking-[0.18em] text-woven-text">Join</button>
+            <button type="submit" className="bg-woven-accent px-4 font-mono text-2xs uppercase tracking-[0.18em] text-woven-text hover:bg-white transition-colors">Join</button>
           </form>
+          <p className="mt-3 font-body text-xs text-woven-inverse/50">Sign up and get 10% off your first order.</p>
         </div>
       </div>
     </footer>
@@ -460,7 +447,7 @@ function FooterColumn({ title, links }: { title: string; links: [string, string]
     <div>
       <p className="font-mono text-2xs uppercase tracking-[0.22em] text-woven-accent">{title}</p>
       <div className="mt-4 grid gap-3 font-body text-sm text-woven-inverse/70">
-        {links.map(([label, href]) => <Link key={href} href={href} className="hover:text-woven-accent">{label}</Link>)}
+        {links.map(([label, href]) => <Link key={href} href={href} className="hover:text-woven-accent transition-colors">{label}</Link>)}
       </div>
     </div>
   );
@@ -555,6 +542,7 @@ export function CollectionDetailPage({ catalog = fallbackCatalog, collection }: 
 export function ProductDetailPage({ catalog = fallbackCatalog, product, collection }: { catalog?: CatalogData; product: Product; collection: Collection }) {
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [added, setAdded] = useState(false);
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const activeTheme = getTheme(catalog, product.theme);
 
   return (
@@ -563,7 +551,7 @@ export function ProductDetailPage({ catalog = fallbackCatalog, product, collecti
       <main className="px-5 pb-24 pt-32 md:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="font-mono text-2xs uppercase tracking-[0.16em] opacity-60">
-            <Link href={themeHref[activeTheme.id]}>{activeTheme.label}</Link> / <Link href={`/collections/${collection.slug}`}>{collection.title}</Link> / {product.name}
+            <Link href={themeHref[activeTheme.id]} className="hover:text-woven-accent transition-colors">{activeTheme.label}</Link> / <Link href={`/collections/${collection.slug}`} className="hover:text-woven-accent transition-colors">{collection.title}</Link> / {product.name}
           </div>
           <div className="mt-8 grid gap-12 lg:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
             <ProductArtwork product={product} tall />
@@ -571,19 +559,42 @@ export function ProductDetailPage({ catalog = fallbackCatalog, product, collecti
               <span className="inline-flex border border-current/20 px-3 py-2 font-mono text-2xs uppercase tracking-[0.16em]">{collection.title}</span>
               <div>
                 <h1 className={`${collection.fontClass} text-7xl leading-none`}>{product.name}</h1>
+                <p className="mt-2 font-body text-sm opacity-70">Straight fit — true to size</p>
                 <p className="mt-4 font-mono text-2xl">{product.price}</p>
               </div>
               <p className="font-body text-md leading-relaxed opacity-70">{product.description}</p>
-              <div className="flex flex-wrap gap-2">
-                {product.sizes.map((size) => (
-                  <button key={size} type="button" onClick={() => setSelectedSize(size)} className={`grid h-11 min-w-11 place-items-center border px-3 font-mono text-xs ${selectedSize === size ? "border-woven-text bg-woven-text text-woven-inverse" : "border-current/25"}`}>{size}</button>
-                ))}
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="font-mono text-xs uppercase tracking-[0.16em]">Size</p>
+                  <button type="button" onClick={() => setIsSizeGuideOpen(true)} className="font-body text-sm underline opacity-70 hover:opacity-100 hover:text-woven-accent transition-colors cursor-pointer">Size Guide</button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes.map((size) => (
+                    <button key={size} type="button" onClick={() => setSelectedSize(size)} className={`grid h-11 min-w-11 place-items-center border px-3 font-mono text-xs transition duration-hover ease-woven ${selectedSize === size ? "border-woven-text bg-woven-text text-woven-inverse" : "border-current/25 hover:border-current cursor-pointer"}`}>{size}</button>
+                  ))}
+                </div>
               </div>
+
               <button type="button" onClick={() => setAdded(true)} className={`${buttonClasses("primary")} w-full`}>{product.status === "Notify Me" ? "Notify Me" : "Add To Cart"}</button>
               {added && <p className="font-mono text-xs uppercase tracking-[0.16em] text-woven-accent">Added to cart</p>}
-              {[["Material & Fabric", product.material], ["Shipping & Returns", "Ships in 3 to 5 working days. Returns accepted within 14 days if unworn."]].map(([title, copy]) => (
-                <details key={title} className="border-t border-current/15 py-4">
-                  <summary className="cursor-pointer font-mono text-2xs uppercase tracking-[0.16em]">{title}</summary>
+              
+              {/* Shipping Badges */}
+              <div className="grid gap-3 pt-2 pb-4 border-b border-current/15">
+                <div className="flex items-center gap-3 font-body text-sm opacity-80">
+                  <span className="text-lg">🚚</span> Ships in 3–5 days
+                </div>
+                <div className="flex items-center gap-3 font-body text-sm opacity-80">
+                  <span className="text-lg">🔄</span> 14-day returns
+                </div>
+                <div className="flex items-center gap-3 font-body text-sm opacity-80">
+                  <span className="text-lg">🔒</span> Secure checkout
+                </div>
+              </div>
+
+              {[["Material & Fabric", product.material]].map(([title, copy]) => (
+                <details key={title} className="border-b border-current/15 pb-4">
+                  <summary className="cursor-pointer font-mono text-2xs uppercase tracking-[0.16em] hover:text-woven-accent transition-colors">{title}</summary>
                   <p className="mt-3 font-body text-sm leading-relaxed opacity-70">{copy}</p>
                 </details>
               ))}
@@ -592,6 +603,51 @@ export function ProductDetailPage({ catalog = fallbackCatalog, product, collecti
         </div>
       </main>
       <Footer catalog={catalog} activeThemeId={product.theme} />
+
+      {/* Size Guide Modal */}
+      {isSizeGuideOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setIsSizeGuideOpen(false)}>
+          <div className="bg-woven-bg text-woven-text w-full max-w-lg overflow-hidden border border-woven-border shadow-xl rounded-card" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-woven-border p-4">
+              <h2 className="font-display text-2xl">Size Guide</h2>
+              <button type="button" onClick={() => setIsSizeGuideOpen(false)} className="grid h-8 w-8 place-items-center opacity-70 hover:opacity-100 transition-opacity cursor-pointer text-xl">
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left font-body text-sm">
+                  <thead>
+                    <tr className="border-b border-woven-border font-mono text-xs tracking-wider uppercase opacity-70">
+                      <th className="py-3 pr-4 font-normal">Size</th>
+                      <th className="py-3 px-4 font-normal">Chest (in)</th>
+                      <th className="py-3 px-4 font-normal">Waist (in)</th>
+                      <th className="py-3 px-4 font-normal">Length (in)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-woven-border">
+                    {[
+                      ["XS", "34–36", "28–30", "27"],
+                      ["S", "36–38", "30–32", "28"],
+                      ["M", "38–40", "32–34", "29"],
+                      ["L", "40–42", "34–36", "30"],
+                      ["XL", "42–44", "36–38", "31"],
+                    ].map(([size, chest, waist, length]) => (
+                      <tr key={size} className="hover:bg-woven-text/5 transition-colors">
+                        <td className="py-3 pr-4 font-mono font-bold">{size}</td>
+                        <td className="py-3 px-4 opacity-80">{chest}</td>
+                        <td className="py-3 px-4 opacity-80">{waist}</td>
+                        <td className="py-3 px-4 opacity-80">{length}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-6 font-body text-xs opacity-60">Measurements are in inches. If you are between sizes, we recommend sizing up for a more relaxed fit.</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -834,6 +890,75 @@ function CardPaymentFields() {
       <p className="md:col-span-2 font-body text-sm leading-relaxed text-woven-muted">
         Card details are used only for this checkout request. Woven saves the brand and last four digits with the payment record.
       </p>
+    </div>
+  );
+}
+
+export function AboutExperience({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
+  const activeTheme = getTheme(catalog, "classic");
+
+  return (
+    <div className={activeTheme.pageClass}>
+      <Navigation activeTheme={activeTheme} cartCount={1} />
+      <main className="bg-woven-bg px-5 pb-32 pt-40 text-woven-text md:px-10">
+        <article className="mx-auto max-w-3xl">
+          <header className="text-center mb-24">
+            <p className="font-mono text-xs uppercase tracking-[0.22em] text-woven-accent mb-6">Our Story</p>
+            <h1 className="font-display text-7xl leading-tight md:text-9xl mb-8">
+              Clothing made for the way you actually live.
+            </h1>
+            <p className="font-body text-xl opacity-70 leading-relaxed max-w-2xl mx-auto">
+              We build theme-led clothing worlds for everyday dressing, from refined classics to warm-weather ease and cold-weather layers.
+            </p>
+          </header>
+
+          <section className="mb-24">
+            <h2 className="font-display text-4xl mb-6">Who We Are</h2>
+            <p className="font-body text-lg leading-relaxed opacity-80 mb-6">
+              Woven started with a simple observation: our lives don't fit into a single box, and neither should our wardrobes. We found ourselves constantly shifting between work, leisure, and the moments in between, struggling to find clothes that could keep up without feeling overly technical or rigidly formal.
+            </p>
+            <p className="font-body text-lg leading-relaxed opacity-80">
+              We are a team of designers, textile experts, and everyday people committed to creating garments that act as a foundation for your life, rather than a distraction.
+            </p>
+          </section>
+
+          <section className="mb-24">
+            <h2 className="font-display text-4xl mb-6">Why We Do It</h2>
+            <p className="font-body text-lg leading-relaxed opacity-80 mb-6">
+              The fashion industry is notoriously wasteful, driven by fleeting trends and artificial urgency. We want to offer an alternative: clothes with a point of view, designed thoughtfully and produced responsibly. 
+            </p>
+            <p className="font-body text-lg leading-relaxed opacity-80">
+              We believe that getting dressed should be the easiest part of your day, giving you the confidence to focus on what actually matters.
+            </p>
+          </section>
+
+          <section className="mb-24">
+            <h2 className="font-display text-4xl mb-12">Our Pillars</h2>
+            <div className="grid md:grid-cols-3 gap-12">
+              <div>
+                <h3 className="font-display text-2xl mb-4 text-woven-accent">Considered Design</h3>
+                <p className="font-body text-md opacity-70 leading-relaxed">Every stitch, seam, and silhouette is scrutinized. We strip away the unnecessary to leave only what serves a purpose.</p>
+              </div>
+              <div>
+                <h3 className="font-display text-2xl mb-4 text-woven-accent">Built To Last</h3>
+                <p className="font-body text-md opacity-70 leading-relaxed">We source premium, durable fabrics that age beautifully, ensuring your pieces remain in your rotation for years.</p>
+              </div>
+              <div>
+                <h3 className="font-display text-2xl mb-4 text-woven-accent">Made For Real Days</h3>
+                <p className="font-body text-md opacity-70 leading-relaxed">Our clothing is designed to move with you, providing comfort and quiet confidence from morning coffee to evening drinks.</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="text-center border-t border-woven-border pt-24">
+            <h2 className="font-display text-5xl mb-8">Ready to explore?</h2>
+            <Link href="/collections" className={buttonClasses("primary")}>
+              Shop Collections
+            </Link>
+          </section>
+        </article>
+      </main>
+      <Footer catalog={catalog} />
     </div>
   );
 }

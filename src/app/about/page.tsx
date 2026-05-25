@@ -1,4 +1,4 @@
-import { SimpleContentPage } from "@/components/woven-client";
+import { AboutExperience } from "@/components/woven-client";
 import { getCatalogData } from "@/lib/supabase-catalog";
 
 export const metadata = {
@@ -9,5 +9,5 @@ export const metadata = {
 export default async function Page() {
   const catalog = await getCatalogData();
 
-  return <SimpleContentPage type="about" catalog={catalog} />;
+  return <AboutExperience catalog={catalog} />;
 }
