@@ -257,7 +257,7 @@ img {
   inset: 0;
   background-image:
     linear-gradient(90deg, rgba(244, 240, 233, 0.98) 0%, rgba(244, 240, 233, 0.84) 24%, rgba(244, 240, 233, 0.2) 52%, rgba(244, 240, 233, 0.02) 100%),
-    url("/images/woven-assets/hero-clean.jpg");
+    url("https://images.unsplash.com/photo-1523398002811-999ca8dec234?q=90&w=2200&auto=format&fit=crop");
   background-position: center;
   background-size: cover;
 }
@@ -318,6 +318,34 @@ img {
   height: 17px;
   border: 1px solid currentColor;
   transform: rotate(45deg);
+}
+
+.woven-promo-rail {
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-woven-border);
+  background: var(--color-woven-bg);
+}
+
+.woven-promo-rail div {
+  display: flex;
+  width: max-content;
+  animation: woven-marquee 24s linear infinite;
+}
+
+.woven-promo-rail span {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 10px;
+  padding-inline: 28px;
+  color: var(--color-woven-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.woven-promo-rail strong {
+  color: var(--color-woven-text);
 }
 
 .woven-section {
@@ -457,6 +485,257 @@ img {
   scroll-snap-align: start;
 }
 
+.woven-journal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.woven-journal-card {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--color-woven-border);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.woven-journal-card img {
+  width: 100%;
+  aspect-ratio: 16 / 11;
+  object-fit: cover;
+}
+
+.woven-journal-card div {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+}
+
+.woven-journal-card span,
+.woven-journal-card a {
+  color: var(--color-woven-muted);
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.woven-journal-card h3 {
+  font-size: 22px;
+  font-weight: 950;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.woven-service-panel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  padding-block: 42px;
+}
+
+.woven-service-panel article {
+  display: grid;
+  gap: 12px;
+  min-height: 160px;
+  align-content: center;
+  border: 1px solid var(--color-woven-border);
+  padding: 22px;
+}
+
+.woven-service-panel h3 {
+  font-size: 15px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.woven-service-panel p {
+  color: var(--color-woven-muted);
+  line-height: 1.45;
+}
+
+.woven-fit-band {
+  border-top: 2px solid var(--color-woven-text);
+  border-bottom: 2px solid var(--color-woven-text);
+  background: #101111;
+  color: var(--color-woven-inverse);
+}
+
+.woven-fit-grid {
+  display: grid;
+  grid-template-columns: 0.78fr 1.22fr;
+  gap: 34px;
+  align-items: center;
+  padding-block: 56px;
+}
+
+.woven-fit-grid > div:first-child p,
+.woven-store-cta p {
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.woven-fit-grid h2,
+.woven-store-cta h2 {
+  margin-top: 10px;
+  font-size: clamp(34px, 4.8vw, 62px);
+  font-weight: 950;
+  line-height: 0.96;
+  text-transform: uppercase;
+}
+
+.woven-fit-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.woven-fit-cards article {
+  display: grid;
+  gap: 12px;
+  min-height: 210px;
+  align-content: end;
+  border: 1px solid rgba(248, 245, 239, 0.24);
+  padding: 20px;
+}
+
+.woven-fit-cards h3 {
+  font-size: 18px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.woven-fit-cards p {
+  color: rgba(248, 245, 239, 0.72);
+  line-height: 1.45;
+}
+
+.woven-outfit-builder {
+  display: grid;
+  grid-template-columns: 1.2fr 0.9fr 0.9fr;
+  gap: 18px;
+}
+
+.woven-outfit-card {
+  position: relative;
+  min-height: 430px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--color-woven-surface);
+  color: white;
+}
+
+.woven-outfit-card:first-child {
+  min-height: 520px;
+}
+
+.woven-outfit-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 500ms ease;
+}
+
+.woven-outfit-card:hover img {
+  transform: scale(1.045);
+}
+
+.woven-outfit-card::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 45%, rgba(0, 0, 0, 0.76));
+  content: "";
+}
+
+.woven-outfit-card div {
+  position: absolute;
+  z-index: 1;
+  right: 20px;
+  bottom: 20px;
+  left: 20px;
+  display: grid;
+  gap: 8px;
+}
+
+.woven-outfit-card span {
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.woven-outfit-card strong {
+  font-size: clamp(22px, 3vw, 36px);
+  font-weight: 950;
+  line-height: 0.96;
+  text-transform: uppercase;
+}
+
+.woven-reviews {
+  border-block: 1px solid var(--color-woven-border);
+  padding-block: 56px;
+}
+
+.woven-review-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.woven-review-grid article {
+  display: grid;
+  gap: 18px;
+  min-height: 220px;
+  align-content: space-between;
+  border: 1px solid var(--color-woven-border);
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.woven-review-grid div {
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.woven-review-grid p {
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.woven-review-grid strong {
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.woven-store-cta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  align-items: center;
+  border-top: 2px solid var(--color-woven-text);
+  border-bottom: 2px solid var(--color-woven-text);
+  padding-block: 42px;
+}
+
+.woven-store-cta h2 {
+  max-width: 760px;
+}
+
+.woven-store-cta > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.woven-store-cta a {
+  min-height: 40px;
+  border: 1px solid var(--color-woven-text);
+  padding: 12px 18px;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
 .woven-product-card {
   min-width: 0;
 }
@@ -565,7 +844,7 @@ img {
   border-bottom: 2px solid var(--color-woven-text);
   background-image:
     linear-gradient(90deg, rgba(121, 172, 208, 0.98) 0%, rgba(121, 172, 208, 0.9) 43%, rgba(121, 172, 208, 0.08) 72%),
-    url("/images/woven-assets/newsletter.jpg");
+    url("https://images.unsplash.com/photo-1506629905607-d9e297d46d30?q=90&w=1800&auto=format&fit=crop");
   background-position: center right;
   background-size: cover;
   color: white;
@@ -633,7 +912,7 @@ img {
 
 .woven-brand-image {
   min-height: 420px;
-  background-image: url("/images/woven-assets/about_rack.jpg");
+  background-image: url("https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=90&w=1800&auto=format&fit=crop");
   background-position: center;
   background-size: cover;
 }
@@ -797,6 +1076,132 @@ img {
 
 .woven-route-products {
   margin-top: 54px;
+}
+
+.woven-shop-hero {
+  display: grid;
+  min-height: 330px;
+  align-items: end;
+  border-bottom: 2px solid var(--color-woven-text);
+  background-image:
+    linear-gradient(90deg, rgba(244, 240, 233, 0.94), rgba(244, 240, 233, 0.48)),
+    url("https://images.unsplash.com/photo-1506629905607-d9e297d46d30?q=90&w=1800&auto=format&fit=crop");
+  background-position: center right;
+  background-size: cover;
+  padding-bottom: 42px;
+}
+
+.woven-shop-hero p,
+.woven-info-copy p {
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.woven-shop-hero h1,
+.woven-info-copy h1 {
+  margin-top: 8px;
+  font-size: clamp(44px, 7vw, 92px);
+  font-weight: 950;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+.woven-shop-hero span,
+.woven-info-copy span {
+  display: block;
+  max-width: 540px;
+  margin-top: 18px;
+  color: var(--color-woven-muted);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.woven-filter-bar {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-top: 28px;
+  scroll-snap-type: x mandatory;
+}
+
+.woven-filter-bar a {
+  flex: 0 0 auto;
+  min-height: 38px;
+  border: 1px solid var(--color-woven-border);
+  padding: 11px 18px;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+  scroll-snap-align: start;
+}
+
+.woven-lookbook-page {
+  border-top: 2px solid var(--color-woven-text);
+}
+
+.woven-info-layout {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 42px;
+  align-items: start;
+}
+
+.woven-info-copy {
+  position: sticky;
+  top: 96px;
+}
+
+.woven-info-copy strong {
+  display: block;
+  margin-top: 22px;
+  font-size: 15px;
+}
+
+.woven-info-cards {
+  display: grid;
+  gap: 14px;
+}
+
+.woven-info-cards article {
+  border: 1px solid var(--color-woven-border);
+  padding: 24px;
+}
+
+.woven-info-cards h2 {
+  font-size: 26px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.woven-info-cards p {
+  margin-top: 10px;
+  color: var(--color-woven-muted);
+  line-height: 1.55;
+}
+
+.woven-size-table {
+  overflow-x: auto;
+  border: 1px solid var(--color-woven-border);
+}
+
+.woven-size-table table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+}
+
+.woven-size-table th,
+.woven-size-table td {
+  border-bottom: 1px solid var(--color-woven-border);
+  padding: 18px;
+  text-align: left;
+}
+
+.woven-size-table th {
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
 }
 
 .woven-product-page {
@@ -1063,7 +1468,7 @@ img {
   .woven-hero-media {
     background-image:
       linear-gradient(180deg, rgba(244, 240, 233, 0.24), rgba(244, 240, 233, 0.96) 78%),
-      url("/images/woven-assets/hero-clean.jpg");
+      url("https://images.unsplash.com/photo-1523398002811-999ca8dec234?q=90&w=1400&auto=format&fit=crop");
     background-position: center top;
   }
 
@@ -1113,8 +1518,47 @@ img {
 
   .woven-lookbook,
   .woven-brand-grid,
-  .woven-checkout-grid {
+  .woven-checkout-grid,
+  .woven-info-layout {
     grid-template-columns: 1fr;
+  }
+
+  .woven-journal-grid,
+  .woven-service-panel,
+  .woven-fit-grid,
+  .woven-fit-cards,
+  .woven-outfit-builder,
+  .woven-review-grid,
+  .woven-store-cta {
+    grid-template-columns: 1fr;
+  }
+
+  .woven-outfit-builder {
+    display: grid;
+    grid-auto-columns: minmax(250px, 78vw);
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    overflow-x: auto;
+    padding-bottom: 12px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .woven-outfit-card,
+  .woven-outfit-card:first-child {
+    min-height: 360px;
+    scroll-snap-align: start;
+  }
+
+  .woven-store-cta > div:last-child {
+    justify-content: start;
+  }
+
+  .woven-service-panel {
+    gap: 10px;
+  }
+
+  .woven-info-copy {
+    position: static;
   }
 
   .woven-lookbook-primary {
@@ -1180,6 +1624,12 @@ img {
 
   .woven-product-info {
     order: 3;
+  }
+}
+
+@keyframes woven-marquee {
+  to {
+    transform: translateX(-50%);
   }
 }
 

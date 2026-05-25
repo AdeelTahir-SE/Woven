@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import {
   fallbackCatalog,
   type CatalogData,
@@ -12,46 +14,92 @@ import {
 } from "@/lib/woven-data";
 
 type CartProduct = Product & { cartQuantity: number; cartSize: string };
+type CheckoutItem = {
+  productSlug: string;
+  name: string;
+  pricePkr: number;
+  quantity: number;
+  size: string;
+};
+
+const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
+const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 const categoryCards = [
   {
     title: "T-Shirts",
     href: "/collections/plain-essentials",
-    image: "/images/woven-assets/cat_tshirts.jpg",
+    image: "https://images.unsplash.com/photo-1516826957135-700dedea698c?q=90&w=1400&auto=format&fit=crop",
   },
   {
     title: "Hoodies",
     href: "/collections/ice-hoodies",
-    image: "/images/woven-assets/cat_hoodies.jpg",
+    image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=90&w=1400&auto=format&fit=crop",
   },
   {
     title: "Pants",
     href: "/collections/light-pants",
-    image: "/images/woven-assets/cat_pants.jpg",
+    image: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?q=90&w=1400&auto=format&fit=crop",
   },
   {
     title: "Accessories",
     href: "/collections/winter-essentials",
-    image: "/images/woven-assets/cat_accessories.jpg",
+    image: "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?q=90&w=1400&auto=format&fit=crop",
   },
 ];
 
 const lookbookImages = [
-  "/images/woven-assets/lookbook_primary.jpg",
-  "/images/woven-assets/lookbook_green.jpg",
-  "/images/woven-assets/lookbook_blue.jpg",
+  "https://images.unsplash.com/photo-1516826957135-700dedea698c?q=90&w=1800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1523398002811-999ca8dec234?q=90&w=1600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=90&w=1400&auto=format&fit=crop",
 ];
 
 const fallbackProductImages = [
-  "/images/woven-assets/best_abstract.jpg",
-  "/images/woven-assets/best_essential.jpg",
-  "/images/woven-assets/best_hoodie.jpg",
-  "/images/woven-assets/best_pants.jpg",
-  "/images/woven-assets/product_abstract.jpg",
-  "/images/woven-assets/cat_tshirts.jpg",
+  "https://images.unsplash.com/photo-1503341504253-dff4815485f1?q=90&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=90&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=90&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?q=90&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?q=90&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?q=90&w=1200&auto=format&fit=crop",
 ];
 
 const colorSwatches = ["#090909", "#c8b8a6", "#315e42", "#9fb8c9", "#a8262f"];
+const policyItems = [
+  ["Free Shipping", "On orders over Rs. 7,500"],
+  ["Easy Returns", "14-day fit guarantee"],
+  ["Secure Checkout", "Cards, COD and wallets"],
+  ["Support", "Care team replies within 24h"],
+];
+
+const journalCards = [
+  {
+    title: "How To Build A Quiet Uniform",
+    tag: "Style Notes",
+    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=90&w=1200&auto=format&fit=crop",
+  },
+  {
+    title: "The Everyday Weight Guide",
+    tag: "Fabric",
+    image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=90&w=1200&auto=format&fit=crop",
+  },
+  {
+    title: "Four Fits For Real Days",
+    tag: "Lookbook",
+    image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=90&w=1200&auto=format&fit=crop",
+  },
+];
+
+const fitCards = [
+  ["Boxy Tee", "Dropped shoulder, heavyweight handfeel, relaxed body."],
+  ["Everyday Hoodie", "Soft fleece, clean rib, roomy enough for layering."],
+  ["Cargo Pant", "Straight leg, practical pockets, easy movement."],
+];
+
+const reviewCards = [
+  ["Ayaan", "The tee weight is exactly right. Heavy, but still wearable every day."],
+  ["Maha", "Clean packaging, fast delivery, and the hoodie fit was spot on."],
+  ["Zain", "The product page sizing helped. I ordered M and it fits perfectly."],
+];
 const themeHref: Record<ThemeId, string> = {
   classic: "/",
   summer: "/collections",
@@ -124,10 +172,10 @@ function Navigation({ cartCount = 1 }: { activeTheme?: Theme; cartCount?: number
           WOVEN
         </Link>
         <div className="woven-nav-links">
-          <Link href="/collections">Shop</Link>
+          <Link href="/shop">Shop</Link>
           <Link href="/collections">Collections</Link>
           <Link href="/about">About</Link>
-          <Link href="/drops">Lookbook</Link>
+          <Link href="/lookbook">Lookbook</Link>
         </div>
         <div className="woven-nav-actions" aria-label="Store actions">
           <Link href="/search" aria-label="Search">
@@ -146,7 +194,7 @@ function Navigation({ cartCount = 1 }: { activeTheme?: Theme; cartCount?: number
           {["Shop", "Collections", "About", "Lookbook", "Search", "Cart"].map((item) => (
             <Link
               key={item}
-              href={item === "Shop" ? "/collections" : item === "Lookbook" ? "/drops" : `/${item.toLowerCase()}`}
+            href={item === "Shop" ? "/shop" : item === "Lookbook" ? "/lookbook" : `/${item.toLowerCase()}`}
               onClick={() => setOpen(false)}
             >
               {item}
@@ -210,6 +258,21 @@ function CollectionsShowcase() {
             <strong>{card.title}</strong>
             <small>Shop Now</small>
           </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PromoRail() {
+  return (
+    <section className="woven-promo-rail" aria-label="Store benefits">
+      <div>
+        {[...policyItems, ...policyItems].map(([title, copy], index) => (
+          <span key={`${title}-${index}`}>
+            <strong>{title}</strong>
+            {copy}
+          </span>
         ))}
       </div>
     </section>
@@ -284,6 +347,129 @@ function FeaturedSlider({ catalog }: { catalog: CatalogData }) {
             <ProductCard product={product} collection={getCollectionFromProduct(catalog, product)} index={index} />
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function EditorialGrid() {
+  return (
+    <section className="woven-section woven-shell">
+      <div className="woven-section-heading">
+        <h2>Editorial Notes</h2>
+        <Link href="/lookbook">Read More</Link>
+      </div>
+      <div className="woven-journal-grid">
+        {journalCards.map((card) => (
+          <article key={card.title} className="woven-journal-card">
+            <img src={card.image} alt={card.title} />
+            <div>
+              <span>{card.tag}</span>
+              <h3>{card.title}</h3>
+              <Link href="/lookbook">Explore</Link>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ServicePanel() {
+  return (
+    <section className="woven-shell woven-service-panel">
+      {policyItems.map(([title, copy]) => (
+        <article key={title}>
+          <span className="woven-value-icon" />
+          <h3>{title}</h3>
+          <p>{copy}</p>
+        </article>
+      ))}
+    </section>
+  );
+}
+
+function FitGuideBand() {
+  return (
+    <section className="woven-fit-band">
+      <div className="woven-shell woven-fit-grid">
+        <div>
+          <p>Fit Guide</p>
+          <h2>Made To Move Through Real Days.</h2>
+        </div>
+        <div className="woven-fit-cards">
+          {fitCards.map(([title, copy]) => (
+            <article key={title}>
+              <span className="woven-value-icon" />
+              <h3>{title}</h3>
+              <p>{copy}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function OutfitBuilder() {
+  return (
+    <section className="woven-section woven-shell">
+      <div className="woven-section-heading">
+        <h2>Build The Fit</h2>
+        <Link href="/shop">Shop The Set</Link>
+      </div>
+      <div className="woven-outfit-builder">
+        {[
+          ["01", "Start With A Tee", "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=90&w=1200&auto=format&fit=crop"],
+          ["02", "Add A Layer", "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=90&w=1200&auto=format&fit=crop"],
+          ["03", "Finish With Pants", "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?q=90&w=1200&auto=format&fit=crop"],
+        ].map(([number, title, image]) => (
+          <Link key={number} href="/shop" className="woven-outfit-card">
+            <img src={image} alt={title} />
+            <div>
+              <span>{number}</span>
+              <strong>{title}</strong>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ReviewsStrip() {
+  return (
+    <section className="woven-reviews">
+      <div className="woven-shell">
+        <div className="woven-section-heading">
+          <h2>Worn Daily</h2>
+          <Link href="/shop">Shop Favorites</Link>
+        </div>
+        <div className="woven-review-grid">
+          {reviewCards.map(([name, copy]) => (
+            <article key={name}>
+              <div>★★★★★</div>
+              <p>{copy}</p>
+              <strong>{name}</strong>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StoreCta() {
+  return (
+    <section className="woven-store-cta woven-shell">
+      <div>
+        <p>Need Help Choosing?</p>
+        <h2>Find Your Size, Track Your Order, Or Talk To Care.</h2>
+      </div>
+      <div>
+        <Link href="/size-guide">Size Guide</Link>
+        <Link href="/track-order">Track Order</Link>
+        <Link href="/contact">Contact Us</Link>
       </div>
     </section>
   );
@@ -375,10 +561,10 @@ export function Footer({ catalog = fallbackCatalog, activeThemeId = "classic" }:
             <SocialLink href="https://pinterest.com" label="Pinterest" icon="pinterest" />
           </div>
         </div>
-        <FooterColumn title="Shop" links={[["All Products", "/collections"], ["T-Shirts", "/collections/plain-essentials"], ["Hoodies", "/collections/ice-hoodies"], ["Pants", "/collections/light-pants"], ["Accessories", "/collections/winter-essentials"]]} />
+        <FooterColumn title="Shop" links={[["All Products", "/shop"], ["T-Shirts", "/collections/plain-essentials"], ["Hoodies", "/collections/ice-hoodies"], ["Pants", "/collections/light-pants"], ["Accessories", "/collections/winter-essentials"]]} />
         <FooterColumn title="Collections" links={collections.map((collection) => [collection.title, `/collections/${collection.slug}`])} />
-        <FooterColumn title="Information" links={[["About Us", "/about"], ["Lookbook", "/drops"], ["Size Guide", "/products/clean-crew-tee"], ["Shipping & Returns", "/legal/returns"], ["FAQs", "/legal/returns"]]} />
-        <FooterColumn title="Customer Care" links={[["Contact Us", "/about"], ["Track Order", "/account/wishlist"], ["Privacy Policy", "/legal/returns"], ["Terms & Conditions", "/legal/returns"]]} />
+        <FooterColumn title="Information" links={[["About Us", "/about"], ["Lookbook", "/lookbook"], ["Size Guide", "/size-guide"], ["Shipping & Returns", "/legal/returns"], ["FAQs", "/faq"]]} />
+        <FooterColumn title="Customer Care" links={[["Contact Us", "/contact"], ["Track Order", "/track-order"], ["Privacy Policy", "/privacy"], ["Terms & Conditions", "/terms"]]} />
       </div>
       <div className="woven-shell woven-footer-bottom">
         <span>© 2024 Woven. All rights reserved.</span>
@@ -428,7 +614,7 @@ function PaymentIcon({ type }: { type: "visa" | "mastercard" | "paypal" | "apple
       {type === "visa" && "VISA"}
       {type === "mastercard" && <><i /><i /></>}
       {type === "paypal" && "PayPal"}
-      {type === "applepay" && "Pay"}
+      {type === "applepay" && "Apple Pay"}
     </span>
   );
 }
@@ -457,10 +643,17 @@ export function ThemeExperience({ catalog = fallbackCatalog }: { catalog?: Catal
       <main>
         <Hero />
         <TrustStrip />
+        <PromoRail />
         <CollectionsShowcase />
         <Bestsellers catalog={catalog} />
         <FeaturedSlider catalog={catalog} />
+        <FitGuideBand />
+        <OutfitBuilder />
         <Lookbook />
+        <EditorialGrid />
+        <ReviewsStrip />
+        <ServicePanel />
+        <StoreCta />
         <Newsletter />
         <BrandStory />
       </main>
@@ -497,6 +690,42 @@ export function CollectionIndexPage({ catalog = fallbackCatalog }: { catalog?: C
             ))}
           </div>
         </section>
+      </main>
+      <Footer catalog={catalog} />
+    </div>
+  );
+}
+
+export function ShopPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
+  const products = getProducts(catalog, 12);
+
+  return (
+    <div className="woven-page">
+      <Navigation cartCount={1} />
+      <main className="woven-route-main">
+        <section className="woven-shop-hero woven-shell">
+          <div>
+            <p>All Products</p>
+            <h1>Shop Woven</h1>
+            <span>Everyday essentials, edited by fit, fabric and repeat wear.</span>
+          </div>
+        </section>
+        <CollectionsShowcase />
+        <section className="woven-shell woven-filter-bar">
+          {["All", "T-Shirts", "Hoodies", "Pants", "Accessories", "New"].map((item) => (
+            <Link key={item} href={item === "All" ? "/shop" : "/collections"}>
+              {item}
+            </Link>
+          ))}
+        </section>
+        <section className="woven-shell woven-product-grid woven-route-products">
+          {products.map((product, index) => (
+            <ProductCard key={product.id} product={product} collection={getCollectionFromProduct(catalog, product)} index={index} />
+          ))}
+        </section>
+        <OutfitBuilder />
+        <ReviewsStrip />
+        <ServicePanel />
       </main>
       <Footer catalog={catalog} />
     </div>
@@ -613,6 +842,26 @@ export function DropsPage({ catalog = fallbackCatalog }: { catalog?: CatalogData
       <main>
         <Lookbook />
         <Bestsellers catalog={catalog} />
+        <FeaturedSlider catalog={catalog} />
+        <Newsletter />
+      </main>
+      <Footer catalog={catalog} />
+    </div>
+  );
+}
+
+export function LookbookPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
+  return (
+    <div className="woven-page">
+      <Navigation cartCount={1} />
+      <main className="woven-route-main">
+        <section className="woven-lookbook-page">
+          <Lookbook />
+        </section>
+        <OutfitBuilder />
+        <EditorialGrid />
+        <ReviewsStrip />
+        <FeaturedSlider catalog={catalog} />
         <Newsletter />
       </main>
       <Footer catalog={catalog} />
@@ -658,9 +907,83 @@ export function AboutExperience({ catalog = fallbackCatalog }: { catalog?: Catal
       <Navigation cartCount={1} />
       <main className="woven-route-main">
         <BrandStory />
+        <ServicePanel />
+        <EditorialGrid />
         <Newsletter />
       </main>
       <Footer catalog={catalog} />
+    </div>
+  );
+}
+
+export function InfoPage({ type, catalog = fallbackCatalog }: { type: "contact" | "track" | "size" | "privacy" | "terms" | "faq" | "returns"; catalog?: CatalogData }) {
+  const content = {
+    contact: ["Contact Us", "Questions about sizing, delivery or a piece you have your eye on? Reach the Woven care team.", "hello@woven.pk"],
+    track: ["Track Order", "Enter your order email and number to follow your delivery status.", "Tracking opens after your order is confirmed."],
+    size: ["Size Guide", "Use these measurements as a starting point. Woven fits are relaxed and true to size.", "When between sizes, size up for a looser streetwear fit."],
+    privacy: ["Privacy Policy", "We collect only the details needed to process orders, support customers and improve the store.", "Your information is never sold."],
+    terms: ["Terms & Conditions", "Orders are subject to stock availability, payment confirmation and delivery coverage.", "Using this website means accepting Woven store policies."],
+    faq: ["FAQs", "Fast answers for sizing, orders, returns and payments.", "Still stuck? Contact customer care."],
+    returns: ["Shipping & Returns", "Most orders ship in 3-5 working days. Returns are accepted within 14 days for unworn items.", "Keep packaging and proof of purchase."],
+  }[type];
+
+  return (
+    <div className="woven-page">
+      <Navigation cartCount={1} />
+      <main className="woven-route-main">
+        <section className="woven-shell woven-info-layout">
+          <div className="woven-info-copy">
+            <p>Customer Care</p>
+            <h1>{content[0]}</h1>
+            <span>{content[1]}</span>
+            <strong>{content[2]}</strong>
+          </div>
+          {type === "size" ? <SizeGuideTable /> : <InfoCards type={type} />}
+        </section>
+        <ServicePanel />
+      </main>
+      <Footer catalog={catalog} />
+    </div>
+  );
+}
+
+function SizeGuideTable() {
+  return (
+    <div className="woven-size-table">
+      <table>
+        <thead>
+          <tr><th>Size</th><th>Chest</th><th>Waist</th><th>Length</th></tr>
+        </thead>
+        <tbody>
+          {[
+            ["XS", "34-36", "28-30", "27"],
+            ["S", "36-38", "30-32", "28"],
+            ["M", "38-40", "32-34", "29"],
+            ["L", "40-42", "34-36", "30"],
+            ["XL", "42-44", "36-38", "31"],
+          ].map((row) => (
+            <tr key={row[0]}>{row.map((cell) => <td key={cell}>{cell}</td>)}</tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function InfoCards({ type }: { type: string }) {
+  const cards =
+    type === "faq"
+      ? [["How long is delivery?", "Most orders arrive in 3-5 working days."], ["Can I exchange sizes?", "Yes, within 14 days if unworn."], ["Do you offer COD?", "Yes, card and cash on delivery are supported."]]
+      : [["01", "Clean product information and clear checkout."], ["02", "Secure payments and order confirmation."], ["03", "Support for returns, sizing and delivery questions."]];
+
+  return (
+    <div className="woven-info-cards">
+      {cards.map(([title, copy]) => (
+        <article key={title}>
+          <h2>{title}</h2>
+          <p>{copy}</p>
+        </article>
+      ))}
     </div>
   );
 }

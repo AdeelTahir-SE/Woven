@@ -2,12 +2,12 @@ import { InfoPage } from "@/components/woven-client";
 import { getCatalogData } from "@/lib/supabase-catalog";
 
 export const metadata = {
-  title: "Shipping & Returns | Woven",
-  description: "Review Woven shipping, delivery, exchange, and return details.",
+  title: "Privacy Policy | Woven",
+  description: "Read the Woven privacy policy.",
 };
 
 export default async function Page() {
   const catalog = await getCatalogData();
 
-  return <InfoPage type="returns" catalog={catalog} />;
+  return <InfoPage type="privacy" catalog={catalog} />;
 }

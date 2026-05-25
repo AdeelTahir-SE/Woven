@@ -24,6 +24,7 @@ type CheckoutPayload = {
     brand?: string;
     expiry?: string;
   };
+  providerReference?: string;
   items: CheckoutItem[];
 };
 
@@ -74,13 +75,7 @@ function isValidPayload(payload: Partial<CheckoutPayload>): payload is CheckoutP
     return true;
   }
 
-  return Boolean(
-    payload.card?.holder &&
-      payload.card?.last4 &&
-      /^\d{4}$/.test(payload.card.last4) &&
-      payload.card?.expiry &&
-      /^(0[1-9]|1[0-2])\/\d{2}$/.test(payload.card.expiry),
-  );
+  return Boolean(payload.providerReference || payload.card);
 }
 
 function getOrderStatus(paymentMethod: CheckoutPayload["paymentMethod"]) {
@@ -97,7 +92,7 @@ function getPaymentStatus(paymentMethod: CheckoutPayload["paymentMethod"]) {
 
 function getProviderReference(payload: CheckoutPayload) {
   if (payload.paymentMethod !== "card" || !payload.card) {
-    return null;
+    return payload.providerReference ?? null;
   }
 
   const brand = payload.card.brand ?? "card";

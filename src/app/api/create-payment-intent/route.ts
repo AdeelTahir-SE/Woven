@@ -1,15 +1,22 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-// Initialize Stripe. We use a mock or environment variable if available.
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_placeholder", {
-  apiVersion: "2026-04-22.dahlia",
-});
-
 export async function POST(request: Request) {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: "Stripe secret key is not configured." }, { status: 503 });
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: "2026-04-22.dahlia",
+  });
+
   try {
     const { items } = await request.json();
-    
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: "No checkout items provided." }, { status: 400 });
+    }
+
     // Calculate total
     const subtotal = items.reduce((sum: number, item: { pricePkr: number, quantity: number }) => sum + (item.pricePkr * item.quantity), 0);
     const shipping = subtotal > 0 ? 250 : 0;
@@ -30,10 +37,8 @@ export async function POST(request: Request) {
     });
   } catch (error: unknown) {
     console.error("Error creating payment intent:", error);
-    // If it fails (e.g., invalid test key), return a mock secret so the UI doesn't crash completely.
     return NextResponse.json({
-      clientSecret: "pi_mock_secret",
       error: error instanceof Error ? error.message : "Unknown error"
-    });
+    }, { status: 500 });
   }
 }
