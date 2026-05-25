@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import {
@@ -9,11 +9,15 @@ import {
   type CatalogData,
   type Collection,
   type Product,
-  type Theme,
   type ThemeId,
 } from "@/lib/woven-data";
 
 type CartProduct = Product & { cartQuantity: number; cartSize: string };
+type CartLine = {
+  slug: string;
+  size: string;
+  quantity: number;
+};
 type CheckoutItem = {
   productSlug: string;
   name: string;
@@ -24,6 +28,7 @@ type CheckoutItem = {
 
 const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
+const cartStorageKey = "woven-cart";
 
 const categoryCards = [
   {
@@ -100,22 +105,89 @@ const reviewCards = [
   ["Maha", "Clean packaging, fast delivery, and the hoodie fit was spot on."],
   ["Zain", "The product page sizing helped. I ordered M and it fits perfectly."],
 ];
-const themeHref: Record<ThemeId, string> = {
-  classic: "/",
-  summer: "/collections",
-  winter: "/drops",
-};
-
 function priceToNumber(price: string) {
   return Number(price.replace(/[^0-9]/g, ""));
 }
 
-function compactPrice(price: string) {
-  return price.replace("PKR", "Rs.");
+function readCartLines(): CartLine[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(cartStorageKey) ?? "[]");
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter((line): line is CartLine => typeof line?.slug === "string" && typeof line?.size === "string" && Number.isFinite(line?.quantity))
+      .map((line) => ({ ...line, quantity: Math.max(1, Math.floor(line.quantity)) }));
+  } catch {
+    return [];
+  }
 }
 
-function getTheme(catalog: CatalogData, themeId: ThemeId) {
-  return catalog.themes.find((theme) => theme.id === themeId) ?? catalog.themes[0] ?? fallbackCatalog.themes[0];
+function writeCartLines(lines: CartLine[]) {
+  window.localStorage.setItem(cartStorageKey, JSON.stringify(lines));
+  window.dispatchEvent(new Event("woven-cart-change"));
+}
+
+function useCartLines() {
+  const [lines, setLines] = useState<CartLine[]>([]);
+
+  useEffect(() => {
+    function syncCart() {
+      setLines(readCartLines());
+    }
+
+    syncCart();
+    window.addEventListener("storage", syncCart);
+    window.addEventListener("woven-cart-change", syncCart);
+    return () => {
+      window.removeEventListener("storage", syncCart);
+      window.removeEventListener("woven-cart-change", syncCart);
+    };
+  }, []);
+
+  function addItem(product: Product, size = product.sizes[0]) {
+    const current = readCartLines();
+    const existing = current.find((line) => line.slug === product.slug && line.size === size);
+    const next = existing
+      ? current.map((line) => line === existing ? { ...line, quantity: line.quantity + 1 } : line)
+      : [...current, { slug: product.slug, size, quantity: 1 }];
+
+    writeCartLines(next);
+  }
+
+  function updateItem(slug: string, size: string, quantity: number) {
+    const next = readCartLines()
+      .map((line) => line.slug === slug && line.size === size ? { ...line, quantity } : line)
+      .filter((line) => line.quantity > 0);
+
+    writeCartLines(next);
+  }
+
+  function clearCart() {
+    writeCartLines([]);
+  }
+
+  return { lines, addItem, updateItem, clearCart };
+}
+
+function useCartCount() {
+  const { lines } = useCartLines();
+  return lines.reduce((sum, line) => sum + line.quantity, 0);
+}
+
+function resolveCartProducts(catalog: CatalogData, lines: CartLine[]): CartProduct[] {
+  return lines
+    .map((line) => {
+      const product = getProducts(catalog).find((item) => item.slug === line.slug);
+      if (!product) return null;
+      return { ...product, cartQuantity: line.quantity, cartSize: line.size };
+    })
+    .filter((product): product is CartProduct => Boolean(product));
+}
+
+function compactPrice(price: string) {
+  return price.replace("PKR", "Rs.");
 }
 
 function getCollectionFromProduct(catalog: CatalogData, product: Product) {
@@ -158,8 +230,9 @@ function ButtonLink({
   );
 }
 
-function Navigation({ cartCount = 1 }: { activeTheme?: Theme; cartCount?: number }) {
+function Navigation() {
   const [open, setOpen] = useState(false);
+  const cartCount = useCartCount();
 
   return (
     <header className="woven-nav">
@@ -291,6 +364,8 @@ export function ProductArtwork({ product, tall = false, index = 0 }: { product: 
 }
 
 export function ProductCard({ product, collection, index = 0 }: { product: Product; collection?: Collection; index?: number }) {
+  const { addItem } = useCartLines();
+
   return (
     <article className="woven-product-card">
       <Link href={`/products/${product.slug}`} aria-label={`View ${product.name}`}>
@@ -304,6 +379,9 @@ export function ProductCard({ product, collection, index = 0 }: { product: Produ
             <i key={color} style={{ backgroundColor: color }} />
           ))}
         </div>
+        <button className="woven-card-add" type="button" onClick={() => addItem(product, product.sizes.includes("M") ? "M" : product.sizes[0])}>
+          Quick Add
+        </button>
       </div>
     </article>
   );
@@ -632,14 +710,10 @@ function FooterColumn({ title, links }: { title: string; links: [string, string]
   );
 }
 
-export function LogoMark({ logo, size = "h-20 w-20", className = "" }: { logo: number; size?: string; className?: string }) {
-  return <span aria-hidden="true" className={`woven-logo-mark ${size} ${className}`}>{String(logo).padStart(2, "0")}</span>;
-}
-
 export function ThemeExperience({ catalog = fallbackCatalog }: { catalog?: CatalogData; themeId?: ThemeId }) {
   return (
     <div className="woven-page">
-      <Navigation cartCount={1} />
+      <Navigation />
       <main>
         <Hero />
         <TrustStrip />
@@ -667,7 +741,7 @@ export const HomeExperience = ThemeExperience;
 export function CollectionIndexPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
   return (
     <div className="woven-page">
-      <Navigation cartCount={1} />
+      <Navigation />
       <main className="woven-route-main">
         <section className="woven-shell">
           <div className="woven-section-heading woven-centered">
@@ -701,7 +775,7 @@ export function ShopPage({ catalog = fallbackCatalog }: { catalog?: CatalogData 
 
   return (
     <div className="woven-page">
-      <Navigation cartCount={1} />
+      <Navigation />
       <main className="woven-route-main">
         <section className="woven-shop-hero woven-shell">
           <div>
@@ -737,7 +811,7 @@ export function CollectionDetailPage({ catalog = fallbackCatalog, collection }: 
 
   return (
     <div className="woven-page">
-      <Navigation cartCount={1} />
+      <Navigation />
       <main className="woven-route-main">
         <section className="woven-shell">
           <div className="woven-section-heading">
@@ -759,11 +833,12 @@ export function CollectionDetailPage({ catalog = fallbackCatalog, collection }: 
 export function ProductDetailPage({ catalog = fallbackCatalog, product, collection }: { catalog?: CatalogData; product: Product; collection: Collection }) {
   const [selectedSize, setSelectedSize] = useState(product.sizes.includes("M") ? "M" : product.sizes[0]);
   const [added, setAdded] = useState(false);
+  const { addItem } = useCartLines();
   const related = getProducts(catalog, 4);
 
   return (
     <div className="woven-page">
-      <Navigation cartCount={added ? 2 : 1} />
+      <Navigation />
       <main className="woven-product-page woven-shell">
         <div className="woven-breadcrumb">
           <Link href="/">Home</Link> / <Link href={`/collections/${collection.slug}`}>{collection.title}</Link> / {product.name}
@@ -805,7 +880,10 @@ export function ProductDetailPage({ catalog = fallbackCatalog, product, collecti
                 ))}
               </div>
             </div>
-            <button className="woven-buy-button" type="button" onClick={() => setAdded(true)}>
+            <button className="woven-buy-button" type="button" onClick={() => {
+              addItem(product, selectedSize);
+              setAdded(true);
+            }}>
               {added ? "Added To Cart" : "Add To Cart"}
             </button>
             <Link className="woven-buy-button woven-buy-button-light" href="/checkout/payment">
@@ -838,7 +916,7 @@ export function ProductDetailPage({ catalog = fallbackCatalog, product, collecti
 export function DropsPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
   return (
     <div className="woven-page">
-      <Navigation cartCount={1} />
+      <Navigation />
       <main>
         <Lookbook />
         <Bestsellers catalog={catalog} />
@@ -853,7 +931,7 @@ export function DropsPage({ catalog = fallbackCatalog }: { catalog?: CatalogData
 export function LookbookPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
   return (
     <div className="woven-page">
-      <Navigation cartCount={1} />
+      <Navigation />
       <main className="woven-route-main">
         <section className="woven-lookbook-page">
           <Lookbook />
@@ -878,7 +956,7 @@ export function SearchPage({ catalog = fallbackCatalog }: { catalog?: CatalogDat
 
   return (
     <div className="woven-page">
-      <Navigation cartCount={1} />
+      <Navigation />
       <main className="woven-route-main">
         <section className="woven-shell">
           <label className="woven-search-label" htmlFor="search">Search Woven</label>
@@ -904,7 +982,7 @@ export function SearchPage({ catalog = fallbackCatalog }: { catalog?: CatalogDat
 export function AboutExperience({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
   return (
     <div className="woven-page">
-      <Navigation cartCount={1} />
+      <Navigation />
       <main className="woven-route-main">
         <BrandStory />
         <ServicePanel />
@@ -929,7 +1007,7 @@ export function InfoPage({ type, catalog = fallbackCatalog }: { type: "contact" 
 
   return (
     <div className="woven-page">
-      <Navigation cartCount={1} />
+      <Navigation />
       <main className="woven-route-main">
         <section className="woven-shell woven-info-layout">
           <div className="woven-info-copy">
@@ -988,7 +1066,7 @@ function InfoCards({ type }: { type: string }) {
   );
 }
 
-function CheckoutForm({ products }: { products: CartProduct[] }) {
+function CheckoutForm({ products, onOrderComplete }: { products: CartProduct[]; onOrderComplete: () => void }) {
   const [paymentMethod, setPaymentMethod] = useState<"card" | "cod" | "bank_transfer">("card");
   const [clientSecret, setClientSecret] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -1029,6 +1107,7 @@ function CheckoutForm({ products }: { products: CartProduct[] }) {
 
     setStatus("success");
     setMessage(`Order ${result.orderNumber} created. Payment status: ${result.paymentStatus}.`);
+    onOrderComplete();
   }
 
   async function handleCheckout(event: React.FormEvent<HTMLFormElement>) {
@@ -1119,7 +1198,7 @@ function CheckoutForm({ products }: { products: CartProduct[] }) {
         {paymentMethod === "card" && clientSecret && stripePromise && (
           <div className="woven-stripe-panel woven-wide-field">
             <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe" } }}>
-              <StripePaymentForm items={items} customer={customer} onOrderSaved={saveOrder} />
+              <StripePaymentForm customer={customer} onOrderSaved={saveOrder} />
             </Elements>
           </div>
         )}
@@ -1150,11 +1229,9 @@ function CheckoutForm({ products }: { products: CartProduct[] }) {
 }
 
 function StripePaymentForm({
-  items,
   customer,
   onOrderSaved,
 }: {
-  items: CheckoutItem[];
   customer: { customerName: string; email: string; phone: string; city: string; address: string };
   onOrderSaved: (providerReference?: string) => Promise<void>;
 }) {
@@ -1210,7 +1287,8 @@ function StripePaymentForm({
 }
 
 export function SimpleContentPage({ type, catalog = fallbackCatalog }: { type: "about" | "cart" | "checkout" | "account" | "legal"; catalog?: CatalogData }) {
-  const products = getProducts(catalog, 2).map((product) => ({ ...product, cartQuantity: 1, cartSize: "M" }));
+  const { lines, updateItem, clearCart } = useCartLines();
+  const products = resolveCartProducts(catalog, lines);
   const isCheckout = type === "checkout";
   const title =
     type === "cart" ? "Cart Review" : type === "account" ? "Saved Pieces" : type === "legal" ? "Shipping & Returns" : "Checkout";
@@ -1219,23 +1297,173 @@ export function SimpleContentPage({ type, catalog = fallbackCatalog }: { type: "
     return <AboutExperience catalog={catalog} />;
   }
 
+  if (type === "account") {
+    return <AccountPage catalog={catalog} />;
+  }
+
   return (
     <div className="woven-page">
-      <Navigation cartCount={products.length} />
+      <Navigation />
       <main className="woven-route-main">
         <section className="woven-shell">
           <div className="woven-section-heading">
             <h1>{title}</h1>
           </div>
           {isCheckout ? (
-            <CheckoutForm products={products} />
+            products.length > 0 ? (
+              <CheckoutForm products={products} onOrderComplete={clearCart} />
+            ) : (
+              <EmptyCartState />
+            )
           ) : (
-            <div className="woven-product-grid woven-route-products">
-              {products.map((product, index) => (
-                <ProductCard key={product.id} product={product} collection={getCollectionFromProduct(catalog, product)} index={index} />
-              ))}
-            </div>
+            <CartReview products={products} updateItem={updateItem} catalog={catalog} />
           )}
+        </section>
+      </main>
+      <Footer catalog={catalog} />
+    </div>
+  );
+}
+
+function CartReview({
+  products,
+  updateItem,
+  catalog,
+}: {
+  products: CartProduct[];
+  updateItem: (slug: string, size: string, quantity: number) => void;
+  catalog: CatalogData;
+}) {
+  if (products.length === 0) {
+    return <EmptyCartState />;
+  }
+
+  const subtotal = products.reduce((sum, product) => sum + priceToNumber(product.price) * product.cartQuantity, 0);
+
+  return (
+    <div className="woven-cart-layout">
+      <div className="woven-cart-lines">
+        {products.map((product, index) => (
+          <article key={`${product.slug}-${product.cartSize}`} className="woven-cart-line">
+            <ProductArtwork product={product} index={index} />
+            <div>
+              <Link href={`/products/${product.slug}`}>{product.name}</Link>
+              <span>{compactPrice(product.price)} / Size {product.cartSize}</span>
+              <div className="woven-qty-control">
+                <button type="button" onClick={() => updateItem(product.slug, product.cartSize, product.cartQuantity - 1)}>-</button>
+                <strong>{product.cartQuantity}</strong>
+                <button type="button" onClick={() => updateItem(product.slug, product.cartSize, product.cartQuantity + 1)}>+</button>
+                <button type="button" onClick={() => updateItem(product.slug, product.cartSize, 0)}>Remove</button>
+              </div>
+            </div>
+            <strong>Rs. {(priceToNumber(product.price) * product.cartQuantity).toLocaleString("en-US")}</strong>
+          </article>
+        ))}
+      </div>
+      <aside className="woven-cart-summary">
+        <h2>Cart Total</h2>
+        <div><span>Subtotal</span><strong>Rs. {subtotal.toLocaleString("en-US")}</strong></div>
+        <div><span>Shipping</span><strong>Calculated at checkout</strong></div>
+        <Link className="woven-buy-button" href="/checkout/payment">Checkout</Link>
+        <Link className="woven-buy-button woven-buy-button-light" href="/shop">Continue Shopping</Link>
+      </aside>
+    </div>
+  );
+}
+
+function EmptyCartState() {
+  return (
+    <div className="woven-empty-state">
+      <h2>Your Cart Is Empty</h2>
+      <p>Add a tee, hoodie, pant, or accessory to start checkout.</p>
+      <Link className="woven-btn woven-btn-dark" href="/shop">Shop Now</Link>
+    </div>
+  );
+}
+
+export function AccountPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
+  const [status, setStatus] = useState("");
+  const [sessionEmail, setSessionEmail] = useState("");
+
+  useEffect(() => {
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const accessToken = hash.get("access_token");
+
+    if (accessToken) {
+      window.localStorage.setItem("woven-auth-token", accessToken);
+      window.history.replaceState(null, "", window.location.pathname);
+      setStatus("Google login connected.");
+    }
+
+    const token = accessToken ?? window.localStorage.getItem("woven-auth-token");
+    if (!token) return;
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !anonKey) return;
+
+    fetch(`${supabaseUrl.replace(/\/$/, "")}/auth/v1/user`, {
+      headers: {
+        apikey: anonKey,
+        authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.ok ? response.json() : null)
+      .then((user) => {
+        if (user?.email) {
+          setSessionEmail(user.email);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  function signInWithGoogle() {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+    if (!supabaseUrl) {
+      setStatus("Supabase URL is missing. Add NEXT_PUBLIC_SUPABASE_URL before using Google login.");
+      return;
+    }
+
+    const redirectTo = `${window.location.origin}/account/wishlist`;
+    const authUrl = new URL(`${supabaseUrl.replace(/\/$/, "")}/auth/v1/authorize`);
+    authUrl.searchParams.set("provider", "google");
+    authUrl.searchParams.set("redirect_to", redirectTo);
+    window.location.assign(authUrl.toString());
+  }
+
+  function signOut() {
+    window.localStorage.removeItem("woven-auth-token");
+    setSessionEmail("");
+    setStatus("Signed out.");
+  }
+
+  return (
+    <div className="woven-page">
+      <Navigation />
+      <main className="woven-route-main">
+        <section className="woven-shell woven-account-layout">
+          <div>
+            <p>Account</p>
+            <h1>Sign In To Woven.</h1>
+            <span>{sessionEmail ? `Signed in as ${sessionEmail}.` : "Use Google login to manage saved pieces, checkout details, and order updates."}</span>
+            {sessionEmail ? (
+              <button className="woven-google-button" type="button" onClick={signOut}>
+                Sign Out
+              </button>
+            ) : (
+              <button className="woven-google-button" type="button" onClick={signInWithGoogle}>
+                <span>G</span>
+                Continue With Google
+              </button>
+            )}
+            {status && <p className={`woven-checkout-message ${status.includes("missing") ? "is-error" : "is-success"}`}>{status}</p>}
+          </div>
+          <div className="woven-product-grid">
+            {getProducts(catalog, 2).map((product, index) => (
+              <ProductCard key={product.id} product={product} collection={getCollectionFromProduct(catalog, product)} index={index} />
+            ))}
+          </div>
         </section>
       </main>
       <Footer catalog={catalog} />

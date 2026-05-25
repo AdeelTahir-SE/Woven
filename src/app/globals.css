@@ -767,6 +767,22 @@ img {
   font-weight: 700;
 }
 
+.woven-card-add {
+  width: fit-content;
+  border: 1px solid var(--color-woven-border);
+  background: transparent;
+  padding: 8px 11px;
+  font-size: 10px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.woven-card-add:hover {
+  border-color: var(--color-woven-text);
+  background: var(--color-woven-text);
+  color: var(--color-woven-inverse);
+}
+
 .woven-swatches {
   display: flex;
   gap: 9px;
@@ -1483,6 +1499,141 @@ img {
   padding-top: 16px;
 }
 
+.woven-cart-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 28px;
+  margin-top: 34px;
+}
+
+.woven-cart-lines {
+  display: grid;
+  gap: 14px;
+}
+
+.woven-cart-line {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  border: 1px solid var(--color-woven-border);
+  padding: 14px;
+}
+
+.woven-cart-line .woven-product-art {
+  aspect-ratio: 1;
+}
+
+.woven-cart-line a {
+  display: block;
+  font-size: 20px;
+  font-weight: 950;
+}
+
+.woven-cart-line span {
+  display: block;
+  margin-top: 6px;
+  color: var(--color-woven-muted);
+}
+
+.woven-qty-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.woven-qty-control button {
+  border: 1px solid var(--color-woven-border);
+  background: transparent;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.woven-cart-summary,
+.woven-empty-state,
+.woven-account-layout > div:first-child {
+  border: 1px solid var(--color-woven-border);
+  padding: 24px;
+}
+
+.woven-cart-summary h2,
+.woven-empty-state h2,
+.woven-account-layout h1 {
+  font-size: clamp(30px, 4vw, 52px);
+  font-weight: 950;
+  line-height: 0.98;
+  text-transform: uppercase;
+}
+
+.woven-cart-summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--color-woven-border);
+  padding-block: 16px;
+}
+
+.woven-empty-state {
+  display: grid;
+  gap: 16px;
+  margin-top: 34px;
+  place-items: start;
+}
+
+.woven-empty-state p,
+.woven-account-layout span {
+  color: var(--color-woven-muted);
+  line-height: 1.55;
+}
+
+.woven-account-layout {
+  display: grid;
+  grid-template-columns: 0.82fr 1.18fr;
+  gap: 28px;
+}
+
+.woven-account-layout p:first-child {
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.woven-account-layout span {
+  display: block;
+  margin-top: 16px;
+}
+
+.woven-google-button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  border: 1px solid var(--color-woven-text);
+  background: var(--color-woven-text);
+  color: var(--color-woven-inverse);
+  padding-inline: 18px;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.woven-google-button span {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-woven-inverse);
+  color: var(--color-woven-text);
+  font-weight: 950;
+}
+
 .woven-logo-mark {
   display: inline-grid;
   place-items: center;
@@ -1569,6 +1720,8 @@ img {
   .woven-lookbook,
   .woven-brand-grid,
   .woven-checkout-grid,
+  .woven-cart-layout,
+  .woven-account-layout,
   .woven-info-layout {
     grid-template-columns: 1fr;
   }
@@ -1601,6 +1754,14 @@ img {
 
   .woven-store-cta > div:last-child {
     justify-content: start;
+  }
+
+  .woven-cart-line {
+    grid-template-columns: 92px 1fr;
+  }
+
+  .woven-cart-line > strong {
+    grid-column: 2;
   }
 
   .woven-service-panel {
