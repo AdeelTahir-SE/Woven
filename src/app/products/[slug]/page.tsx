@@ -9,7 +9,7 @@ function productImageUrl(imagePath: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   if (!supabaseUrl) {
-    return `${SITE_URL}/images/Woven_logo_with_tagline.png`;
+    return `${SITE_URL}/woven-wordmark.png`;
   }
 
   return `${supabaseUrl.replace(/\/$/, "")}/storage/v1/object/public/product-images/${imagePath}`;

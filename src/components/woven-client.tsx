@@ -680,31 +680,6 @@ function OutfitBuilder() {
   );
 }
 
-function ReviewsStrip() {
-  return null;
-  /*
-  return (
-    <section className="woven-reviews">
-      <div className="woven-shell">
-        <div className="woven-section-heading">
-          <h2>Worn Daily</h2>
-          <Link href="/shop">Shop Favorites</Link>
-        </div>
-        <div className="woven-review-grid">
-          {reviewCards.map(([name, copy]) => (
-            <article key={name}>
-              <div>★★★★★</div>
-              <p>{copy}</p>
-              <strong>{name}</strong>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-  */
-}
-
 function StoreCta() {
   return (
     <section className="woven-store-cta woven-shell">
@@ -944,7 +919,6 @@ export function ThemeExperience({ catalog = fallbackCatalog }: { catalog?: Catal
         <OutfitBuilder />
         <Lookbook />
         <EditorialGrid />
-        <ReviewsStrip />
         <ServicePanel />
         <StoreCta />
         <Newsletter />
@@ -1017,7 +991,6 @@ export function ShopPage({ catalog = fallbackCatalog }: { catalog?: CatalogData 
           ))}
         </section>
         <OutfitBuilder />
-        <ReviewsStrip />
         <ServicePanel />
       </main>
       <Footer catalog={catalog} />
@@ -1142,7 +1115,6 @@ export function LookbookPage({ catalog = fallbackCatalog }: { catalog?: CatalogD
         </section>
         <OutfitBuilder />
         <EditorialGrid />
-        <ReviewsStrip />
         <FeaturedSlider catalog={catalog} />
         <Newsletter />
       </main>

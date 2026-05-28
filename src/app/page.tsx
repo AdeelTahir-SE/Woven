@@ -8,7 +8,7 @@ export default async function Home() {
     "@type": "Organization",
     name: "Woven",
     url: "https://woven.pk",
-    logo: "https://woven.pk/images/Woven_logo.png",
+    logo: "https://woven.pk/woven-wordmark.png",
     sameAs: ["https://www.instagram.com/wovenpk", "https://www.facebook.com/wovenpk"],
     contactPoint: {
       "@type": "ContactPoint",

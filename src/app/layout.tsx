@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     siteName: "Woven",
     title: "Woven Clothing Pakistan - Minimal Everyday Essentials",
     description: "Cotton tees, pants, shirts, formal layers, hoodies, jackets, and seasonal essentials by Woven.",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Woven clothing collections" }],
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Woven wordmark" }],
   },
   twitter: {
     card: "summary_large_image",
