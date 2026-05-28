@@ -70,8 +70,8 @@ const fallbackProductImages = [
 
 const colorSwatches = ["#090909", "#c8b8a6", "#315e42", "#9fb8c9", "#a8262f"];
 const policyItems = [
-  ["Free Shipping", "On orders over Rs. 7,500"],
-  ["Easy Returns", "14-day fit guarantee"],
+  ["Sustainable Fabrics", "100% Organic & Recycled"],
+  ["Ethically Crafted", "Fair wages & safe conditions"],
   ["Secure Checkout", "Cards, COD and wallets"],
   ["Support", "Care team replies within 24h"],
 ];
@@ -230,13 +230,31 @@ function ButtonLink({
   );
 }
 
+function SaleRail() {
+  const saleText = "SALE 30% OFF EVERYTHING";
+  return (
+    <section className="woven-sale-rail" aria-label="Sale announcement">
+      <div>
+        {Array(20).fill(saleText).map((text, index) => (
+          <span key={`sale-${index}`}>
+            <strong>{text}</strong>
+            <span className="woven-sale-divider">•</span>
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function Navigation() {
   const [open, setOpen] = useState(false);
   const cartCount = useCartCount();
 
   return (
-    <header className="woven-nav">
-      <nav className="woven-shell woven-nav-inner">
+    <>
+      <SaleRail />
+      <header className="woven-nav">
+        <nav className="woven-shell woven-nav-inner">
         <button className="woven-menu" type="button" aria-label="Toggle menu" onClick={() => setOpen((value) => !value)}>
           <span />
           <span />
@@ -276,16 +294,44 @@ function Navigation() {
         </div>
       )}
     </header>
+    </>
   );
 }
+
+const TRUST_VALUES = [
+  {
+    title: "Premium Quality",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+    )
+  },
+  {
+    title: "Secure Payments",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    )
+  },
+  {
+    title: "Sustainable Fabrics",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+    )
+  },
+  {
+    title: "Ethically Crafted",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    )
+  }
+];
 
 function TrustStrip() {
   return (
     <section className="woven-trust">
-      {["Premium Quality", "Secure Payments", "Easy Returns", "Worldwide Shipping"].map((item) => (
-        <div key={item}>
-          <span className="woven-trust-icon" />
-          <span>{item}</span>
+      {TRUST_VALUES.map(({ title, icon }) => (
+        <div key={title}>
+          {icon}
+          <span>{title}</span>
         </div>
       ))}
     </section>
@@ -354,11 +400,66 @@ function PromoRail() {
 
 export function ProductArtwork({ product, tall = false, index = 0 }: { product: Product; tall?: boolean; index?: number }) {
   const [failed, setFailed] = useState(false);
-  const image = failed ? fallbackProductImages[index % fallbackProductImages.length] : imageForProduct(product, index);
+  const [isHovered, setIsHovered] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const images = useMemo(() => {
+    const mainImg = failed ? fallbackProductImages[index % fallbackProductImages.length] : imageForProduct(product, index);
+    const img2 = fallbackProductImages[(index + 1) % fallbackProductImages.length];
+    const img3 = fallbackProductImages[(index + 2) % fallbackProductImages.length];
+    return [mainImg, img2, img3];
+  }, [product, index, failed]);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (isHovered) {
+      timeout = setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+      }, 1500);
+    } else {
+      setCurrentIndex(0);
+    }
+    return () => clearTimeout(timeout);
+  }, [isHovered, currentIndex, images.length]);
 
   return (
-    <div className={`woven-product-art ${tall ? "woven-product-art-tall" : ""}`}>
-      <img src={image} alt={product.imageAlt || product.name} loading="lazy" onError={() => setFailed(true)} />
+    <div 
+      className={`woven-product-art ${tall ? "woven-product-art-tall" : ""} woven-product-slider`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="woven-product-slider-track" style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
+        {images.map((img, i) => (
+          <img 
+            key={i}
+            src={img} 
+            alt={`${product.imageAlt || product.name} - view ${i + 1}`} 
+            loading={i === 0 ? "lazy" : "eager"} 
+            onError={() => i === 0 && setFailed(true)} 
+          />
+        ))}
+      </div>
+      
+      {isHovered && (
+        <div className="woven-slider-indicators" style={{ alignItems: 'flex-end', bottom: 0, paddingBottom: '8px' }}>
+           {images.map((_, i) => (
+             <div 
+               key={i}
+               style={{ flex: 1, padding: '12px 0', cursor: 'pointer' }}
+               onPointerDown={(e) => e.stopPropagation()}
+               onClick={(e) => {
+                 e.preventDefault();
+                 e.stopPropagation();
+                 setCurrentIndex(i);
+               }}
+             >
+               <div className={`woven-slider-indicator ${i === currentIndex ? 'active' : i < currentIndex ? 'viewed' : ''}`} style={{ width: '100%' }}>
+                 <div className="woven-slider-indicator-fill" />
+               </div>
+             </div>
+           ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -574,6 +675,33 @@ function Lookbook() {
   );
 }
 
+const BRAND_VALUES = [
+  {
+    title: "Thoughtful Design",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+    )
+  },
+  {
+    title: "Premium Materials",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 12 12 17 22 12"/><polyline points="2 17 12 22 22 17"/></svg>
+    )
+  },
+  {
+    title: "Built To Last",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+    )
+  },
+  {
+    title: "Made For Every Day",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></svg>
+    )
+  }
+];
+
 function BrandStory() {
   return (
     <section className="woven-brand-band">
@@ -591,10 +719,10 @@ function BrandStory() {
         <div className="woven-brand-image" />
       </div>
       <div className="woven-values woven-shell">
-        {["Thoughtful Design", "Premium Materials", "Built To Last", "Made For Every Day"].map((value) => (
-          <div key={value}>
-            <span className="woven-value-icon" />
-            <strong>{value}</strong>
+        {BRAND_VALUES.map(({ title, icon }) => (
+          <div key={title}>
+            {icon}
+            <strong>{title}</strong>
           </div>
         ))}
       </div>
@@ -609,8 +737,8 @@ function Newsletter() {
         <div>
           <h2>Stay In The Loop.</h2>
           <p>New drops, exclusive offers and more.</p>
-          <form onSubmit={(event) => event.preventDefault()}>
-            <input type="email" placeholder="Enter your email" aria-label="Email address" />
+          <form onSubmit={(event) => event.preventDefault()} className="bg-white">
+            <input type="email" placeholder="Enter your email" aria-label="Email address" className="text-black" />
             <button type="submit" aria-label="Subscribe">
               <span className="woven-arrow" />
             </button>

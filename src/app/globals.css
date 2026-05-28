@@ -312,13 +312,7 @@ img {
   text-transform: uppercase;
 }
 
-.woven-trust-icon,
-.woven-value-icon {
-  width: 17px;
-  height: 17px;
-  border: 1px solid currentColor;
-  transform: rotate(45deg);
-}
+
 
 .woven-promo-rail {
   overflow: hidden;
@@ -346,6 +340,35 @@ img {
 
 .woven-promo-rail strong {
   color: var(--color-woven-text);
+}
+
+.woven-sale-rail {
+  overflow: hidden;
+  background: #a8262f;
+  color: #fff;
+}
+
+.woven-sale-rail div {
+  display: flex;
+  width: max-content;
+  animation: woven-marquee 15s linear infinite;
+}
+
+.woven-sale-rail span {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 16px;
+  padding-inline: 16px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.woven-sale-divider {
+  opacity: 0.5;
 }
 
 .woven-section {
@@ -751,6 +774,70 @@ img {
   aspect-ratio: 4 / 5;
 }
 
+.woven-product-slider {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.woven-product-slider-track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 500ms ease;
+}
+
+.woven-product-slider-track img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.woven-slider-indicators {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  z-index: 10;
+}
+
+.woven-product-art:hover .woven-slider-indicators {
+  opacity: 1;
+}
+
+.woven-slider-indicator {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.woven-slider-indicator-fill {
+  height: 100%;
+  width: 0%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 2px;
+}
+
+.woven-slider-indicator.viewed .woven-slider-indicator-fill {
+  width: 100%;
+}
+
+.woven-slider-indicator.active .woven-slider-indicator-fill {
+  animation: woven-slider-fill 1.5s linear forwards;
+}
+
+@keyframes woven-slider-fill {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
 .woven-product-meta {
   display: grid;
   gap: 8px;
@@ -910,6 +997,7 @@ img {
   grid-template-columns: 0.72fr 1fr;
   min-height: 420px;
   align-items: stretch;
+  gap: 6vw;
 }
 
 .woven-brand-copy {
@@ -928,7 +1016,7 @@ img {
 
 .woven-brand-image {
   min-height: 420px;
-  background-image: url("https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=90&w=1800&auto=format&fit=crop");
+  background-image: url("/images/clothes_hanger_woven.png");
   background-position: center;
   background-size: cover;
 }
