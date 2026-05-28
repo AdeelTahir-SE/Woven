@@ -20,11 +20,11 @@ export async function generateMetadata(props: PageProps<"/collections/[slug]">) 
   }
 
   return {
-    title: `${collection.title} Collection - Woven`,
-    description: collection.mood,
+    title: `${collection.title} Clothing Collection`,
+    description: `${collection.mood} Shop ${collection.title.toLowerCase()} by Woven Pakistan.`,
     openGraph: {
-      title: `${collection.title} Collection - Woven Pakistan`,
-      description: collection.mood,
+      title: `${collection.title} Clothing Collection - Woven Pakistan`,
+      description: `${collection.mood} Shop ${collection.title.toLowerCase()} by Woven Pakistan.`,
       type: "website",
       locale: "en_PK",
       siteName: "Woven",
@@ -32,8 +32,8 @@ export async function generateMetadata(props: PageProps<"/collections/[slug]">) 
     },
     twitter: {
       card: "summary_large_image",
-      title: `${collection.title} Collection - Woven`,
-      description: collection.mood,
+      title: `${collection.title} Clothing Collection - Woven`,
+      description: `${collection.mood} Shop ${collection.title.toLowerCase()} by Woven Pakistan.`,
     },
     alternates: {
       canonical: `${SITE_URL}/collections/${slug}`,

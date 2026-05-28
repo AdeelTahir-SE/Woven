@@ -2,8 +2,8 @@ import { LookbookPage } from "@/components/woven-client";
 import { getCatalogData } from "@/lib/supabase-catalog";
 
 export const metadata = {
-  title: "Lookbook | Woven",
-  description: "Explore Woven looks, everyday fits, and editorial style notes.",
+  title: "Woven Lookbook - Minimal Outfits & Seasonal Layers",
+  description: "Explore Woven outfits, cotton basics, everyday fits, hoodies, jackets, pants, and seasonal styling notes from a Pakistani clothing brand.",
 };
 
 export default async function Page() {

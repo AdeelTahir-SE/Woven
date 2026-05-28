@@ -27,11 +27,11 @@ const dmMono = DM_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://woven.pk"),
   title: {
-    default: "Woven - Ideas Stitched Into Reality",
+    default: "Woven Clothing Pakistan - Minimal Everyday Essentials",
     template: "%s - Woven",
   },
   description:
-    "Explore Woven's theme-led clothing collections across Classic, Summer, and Winter: everyday tees, shirts, pants, formal layers, hoodies, jackets, and accessories.",
+    "Shop Woven clothing in Pakistan: minimal everyday essentials across cotton t-shirts, pants, shirts, formal layers, hoodies, jackets, sets, and winter accessories.",
   keywords: [
     "Woven clothing",
     "clothing brand Pakistan",
@@ -50,8 +50,8 @@ export const metadata: Metadata = {
     locale: "en_PK",
     url: "https://woven.pk",
     siteName: "Woven",
-    title: "Woven - Ideas Stitched Into Reality",
-    description: "Plain essentials, summer pieces, formal edits, and winter layers by Woven.",
+    title: "Woven Clothing Pakistan - Minimal Everyday Essentials",
+    description: "Cotton tees, pants, shirts, formal layers, hoodies, jackets, and seasonal essentials by Woven.",
     images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Woven clothing collections" }],
   },
   twitter: {

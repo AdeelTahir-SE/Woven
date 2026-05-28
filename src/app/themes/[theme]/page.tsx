@@ -18,8 +18,8 @@ export async function generateMetadata(props: PageProps<"/themes/[theme]">) {
   }
 
   return {
-    title: `${activeTheme.label} | Woven`,
-    description: activeTheme.tagline,
+    title: `${activeTheme.label} Clothing Edit`,
+    description: `${activeTheme.tagline} Shop Woven ${activeTheme.label.toLowerCase()} clothing essentials in Pakistan.`,
   };
 }
 

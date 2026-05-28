@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Woven",
     short_name: "Woven",
-    description: "Theme-led clothing essentials across Classic, Summer, and Winter.",
+    description: "Minimal clothing essentials in Pakistan across Classic, Summer, and Winter.",
     start_url: "/",
     scope: "/",
     display: "standalone",

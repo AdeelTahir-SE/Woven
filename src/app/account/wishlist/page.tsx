@@ -2,8 +2,8 @@ import { SimpleContentPage } from "@/components/woven-client";
 import { getCatalogData } from "@/lib/supabase-catalog";
 
 export const metadata = {
-  title: "Wishlist | Woven",
-  description: "Your saved Woven items.",
+  title: "Wishlist",
+  description: "View your saved Woven clothing essentials and seasonal layers.",
 };
 
 export default async function Page() {

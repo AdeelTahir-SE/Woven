@@ -2,8 +2,8 @@ import { CollectionIndexPage } from "@/components/woven-client";
 import { getCatalogData } from "@/lib/supabase-catalog";
 
 export const metadata = {
-  title: "Collections - Woven Classic, Summer & Winter Edits",
-  description: "Explore Woven collections across Plain Essentials, Formal Edit, Refined Basics, summer pieces, cold-air jackets, hoodies, and winter essentials.",
+  title: "Woven Collections - Classic, Summer & Winter Clothing",
+  description: "Explore Woven clothing collections across Plain Essentials, Formal Edit, Refined Basics, summer tees, light pants, hoodies, jackets, and winter accessories.",
 };
 
 export default async function CollectionsPage() {

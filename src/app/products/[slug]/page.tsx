@@ -15,6 +15,10 @@ function productImageUrl(imagePath: string) {
   return `${supabaseUrl.replace(/\/$/, "")}/storage/v1/object/public/product-images/${imagePath}`;
 }
 
+function productSeoDescription(product: { name: string; description: string; material: string }) {
+  return `${product.name} by Woven Pakistan. ${product.description} ${product.material}`.slice(0, 155);
+}
+
 export async function generateStaticParams() {
   const catalog = await getCatalogData();
 
@@ -29,7 +33,7 @@ export async function generateMetadata(props: PageProps<"/products/[slug]">) {
     return { title: "Product Not Found | Woven" };
   }
 
-  const description = product.description.slice(0, 155);
+  const description = productSeoDescription(product);
   const image = productImageUrl(product.imagePath);
 
   return {
