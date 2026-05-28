@@ -238,7 +238,7 @@ function ButtonLink({
   );
 }
 
-function ToastContainer() {
+export function ToastContainer() {
   const [toasts, setToasts] = useState<{ id: number; message: string }[]>([]);
 
   useEffect(() => {
@@ -348,7 +348,6 @@ function Navigation() {
           ))}
         </div>
       )}
-      <ToastContainer />
     </header>
   );
 }
