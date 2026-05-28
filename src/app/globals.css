@@ -1687,15 +1687,17 @@ img {
   color: #315e42;
 }
 
-.woven-stripe-panel {
-  border: 1px solid var(--color-woven-border);
-  background: rgba(255, 255, 255, 0.42);
-  padding: 18px;
+.woven-payment-note {
+  color: var(--color-woven-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
 }
 
-.woven-stripe-form {
-  display: grid;
-  gap: 16px;
+.woven-payment-note a {
+  color: var(--color-woven-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .woven-summary {

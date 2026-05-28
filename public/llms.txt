@@ -1,0 +1,37 @@
+# Woven - LLM Context File
+> Version: 1.0 | Last Updated: May 2026
+
+## About Woven
+Woven is a Pakistani direct-to-consumer clothing brand operating at https://woven.pk.
+We sell theme-led apparel across Classic, Summer, and Winter collections, including tees, shirts, pants, blazers, waistcoats, sets, hoodies, jackets, scarves, and seasonal essentials. Products are priced in PKR and sold online.
+
+## Brand Voice
+Simple, confident, tactile, and modern. We speak about fit, fabric, movement, season, and repeat wear. Avoid unrelated textile-heritage language, artisan claims, and generic fashion filler such as "chic" or "trendy".
+
+## Product Catalog Structure
+Products belong to Collections, which belong to Themes.
+- Themes: Classic, Summer, Winter
+- Collections: Plain Essentials, Formal Edit, Refined Basics, Sky T-Shirts, Light Pants, Summer Sets, Ice Hoodies, Cold Air Jackets, Winter Essentials
+- Products: Individual SKUs with name, slug, price in PKR, material, sizes, palette, status, collection, theme, product image, and optional hover image.
+
+## Technical Stack
+- Framework: Next.js App Router
+- Database: Supabase PostgreSQL
+- Storage: Supabase Storage bucket `product-images`
+- Payments: Safepay
+- Hosting: Vercel
+- Auth: Supabase Auth
+
+## Key Pages
+- /shop - full product listing
+- /collections - curated collections
+- /products/[slug] - individual product pages
+- /account/wishlist - saved pieces
+- /checkout/payment - Safepay-powered checkout
+- /faq - customer FAQs
+- /size-guide - clothing measurements and fit guidance
+
+## Contact
+Email: hello@woven.pk
+Instagram: @wovenpk
+Location: Pakistan

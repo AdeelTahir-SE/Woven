@@ -17,7 +17,7 @@ type CheckoutPayload = {
   phone: string;
   address: string;
   city: string;
-  paymentMethod: "cod" | "bank_transfer" | "card";
+  paymentMethod: "cod" | "bank_transfer" | "safepay";
   card?: {
     holder?: string;
     last4?: string;
@@ -71,7 +71,7 @@ function isValidPayload(payload: Partial<CheckoutPayload>): payload is CheckoutP
     return false;
   }
 
-  if (payload.paymentMethod !== "card") {
+  if (payload.paymentMethod !== "safepay") {
     return true;
   }
 
@@ -80,18 +80,18 @@ function isValidPayload(payload: Partial<CheckoutPayload>): payload is CheckoutP
 
 function getOrderStatus(paymentMethod: CheckoutPayload["paymentMethod"]) {
   if (paymentMethod === "cod") return "pay_on_delivery";
-  if (paymentMethod === "card") return "paid";
+  if (paymentMethod === "safepay") return "pending_payment";
   return "pending_payment";
 }
 
 function getPaymentStatus(paymentMethod: CheckoutPayload["paymentMethod"]) {
   if (paymentMethod === "cod") return "pay_on_delivery";
-  if (paymentMethod === "card") return "authorized";
+  if (paymentMethod === "safepay") return "pending";
   return "pending";
 }
 
 function getProviderReference(payload: CheckoutPayload) {
-  if (payload.paymentMethod !== "card" || !payload.card) {
+  if (payload.paymentMethod !== "safepay" || !payload.card) {
     return payload.providerReference ?? null;
   }
 
@@ -112,6 +112,7 @@ export async function POST(request: Request) {
 
   if (!hasSupabaseConfig()) {
     return NextResponse.json({
+      orderId: `LOCAL-${Date.now()}`,
       orderNumber: `LOCAL-${Date.now()}`,
       paymentStatus: getPaymentStatus(payload.paymentMethod),
       totalPkr: total,
@@ -155,6 +156,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
+      orderId,
       orderNumber,
       paymentStatus: getPaymentStatus(payload.paymentMethod),
       totalPkr: total,

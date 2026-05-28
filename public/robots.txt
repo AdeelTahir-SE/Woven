@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /account/
+Disallow: /_next/
+
+Sitemap: https://woven.pk/sitemap.xml

@@ -3,6 +3,8 @@ import { CollectionDetailPage } from "@/components/woven-client";
 import { getCatalogData } from "@/lib/supabase-catalog";
 import { getCollectionFromCatalog } from "@/lib/woven-data";
 
+const SITE_URL = "https://woven.pk";
+
 export async function generateStaticParams() {
   const catalog = await getCatalogData();
 
@@ -18,8 +20,25 @@ export async function generateMetadata(props: PageProps<"/collections/[slug]">) 
   }
 
   return {
-    title: `${collection.title} | Woven`,
+    title: `${collection.title} Collection - Woven`,
     description: collection.mood,
+    openGraph: {
+      title: `${collection.title} Collection - Woven Pakistan`,
+      description: collection.mood,
+      type: "website",
+      locale: "en_PK",
+      siteName: "Woven",
+      url: `${SITE_URL}/collections/${slug}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${collection.title} Collection - Woven`,
+      description: collection.mood,
+    },
+    alternates: {
+      canonical: `${SITE_URL}/collections/${slug}`,
+      languages: { "en-PK": `${SITE_URL}/collections/${slug}` },
+    },
   };
 }
 

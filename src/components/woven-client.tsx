@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { loadStripe } from "@stripe/stripe-js";
-import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import {
   fallbackCatalog,
   type CatalogData,
@@ -29,8 +28,6 @@ type CheckoutItem = {
   size: string;
 };
 
-const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
-const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 const cartStorageKey = "woven-cart";
 
 const categoryCards = [
@@ -103,11 +100,6 @@ const fitCards = [
   ["Cargo Pant", "Straight leg, practical pockets, easy movement.", "/images/cargo_pant_studio.png"],
 ];
 
-const reviewCards = [
-  ["Ayaan", "The tee weight is exactly right. Heavy, but still wearable every day."],
-  ["Maha", "Clean packaging, fast delivery, and the hoodie fit was spot on."],
-  ["Zain", "The product page sizing helped. I ordered M and it fits perfectly."],
-];
 function priceToNumber(price: string) {
   return Number(price.replace(/[^0-9]/g, ""));
 }
@@ -314,7 +306,13 @@ function Navigation() {
                 <Link href="/faq">FAQs</Link>
               </div>
               <div className="woven-mega-col woven-mega-image">
-                <img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=400&h=300" alt="New Arrivals" />
+                <Image
+                  src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=400&h=300"
+                  alt="New Arrivals clothing edit - Woven"
+                  width={400}
+                  height={300}
+                  sizes="(max-width: 900px) 100vw, 25vw"
+                />
                 <h4>NEW ARRIVALS</h4>
                 <Link href="/collections/new-arrivals">Explore Now &rarr;</Link>
                 <div className="woven-menu-sale-banner">{SALE_TEXT}</div>
@@ -426,7 +424,13 @@ function CollectionsShowcase() {
       <div className="woven-category-grid">
         {categoryCards.map((card) => (
           <Link key={card.title} href={card.href} className="woven-category-card">
-            <img src={card.image} alt={`${card.title} collection`} />
+            <Image
+              src={card.image}
+              alt={`${card.title} collection - Woven`}
+              width={700}
+              height={900}
+              sizes="(max-width: 768px) 100vw, 25vw"
+            />
             <span className="woven-image-shade" />
             <strong>{card.title}</strong>
             <small>Shop Now</small>
@@ -484,12 +488,16 @@ export function ProductArtwork({ product, tall = false, index = 0 }: { product: 
     >
       <div className="woven-product-slider-track" style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
         {images.map((img, i) => (
-          <img 
+          <Image
             key={i}
-            src={img} 
-            alt={`${product.imageAlt || product.name} - view ${i + 1}`} 
-            loading={i === 0 ? "lazy" : "eager"} 
-            onError={() => i === 0 && setFailed(true)} 
+            src={img}
+            alt={`${product.imageAlt || product.name} - view ${i + 1}`}
+            width={900}
+            height={1200}
+            sizes={tall ? "(max-width: 900px) 100vw, 42vw" : "(max-width: 768px) 50vw, 25vw"}
+            priority={tall && i === 0}
+            loading={tall && i === 0 ? "eager" : "lazy"}
+            onError={() => i === 0 && setFailed(true)}
           />
         ))}
       </div>
@@ -595,7 +603,7 @@ function EditorialGrid() {
       <div className="woven-journal-grid">
         {journalCards.map((card) => (
           <article key={card.title} className="woven-journal-card">
-            <img src={card.image} alt={card.title} />
+            <Image src={card.image} alt={`${card.title} - Woven editorial`} width={800} height={550} sizes="(max-width: 768px) 100vw, 33vw" />
             <div>
               <span>{card.tag}</span>
               <h3>{card.title}</h3>
@@ -634,7 +642,7 @@ function FitGuideBand() {
           {fitCards.map(([title, copy, img]) => (
             <article key={title}>
               <div className="woven-fit-card-image">
-                <img src={img} alt={title} />
+                <Image src={img} alt={`${title} fit reference - Woven`} width={520} height={520} sizes="(max-width: 768px) 100vw, 24vw" />
               </div>
               <h3>{title}</h3>
               <p>{copy}</p>
@@ -660,7 +668,7 @@ function OutfitBuilder() {
           ["03", "Finish With Pants", "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?q=90&w=1200&auto=format&fit=crop"],
         ].map(([number, title, image]) => (
           <Link key={number} href="/shop" className="woven-outfit-card">
-            <img src={image} alt={title} />
+            <Image src={image} alt={`${title} outfit step - Woven`} width={900} height={1100} sizes="(max-width: 768px) 100vw, 33vw" />
             <div>
               <span>{number}</span>
               <strong>{title}</strong>
@@ -717,7 +725,7 @@ function Lookbook() {
   return (
     <section className="woven-lookbook">
       <div className="woven-lookbook-primary">
-        <img src={lookbookImages[0]} alt="Woven lookbook model in everyday essentials" />
+        <Image src={lookbookImages[0]} alt="Woven lookbook model in everyday essentials" width={1200} height={900} sizes="(max-width: 900px) 100vw, 56vw" />
         <div>
           <h2>Lookbook</h2>
           <p>Real fits. Real people.</p>
@@ -727,8 +735,8 @@ function Lookbook() {
         </div>
       </div>
       <div className="woven-lookbook-stack">
-        <img src={lookbookImages[1]} alt="Woven green tee look" />
-        <img src={lookbookImages[2]} alt="Woven blue tee streetwear look" />
+        <Image src={lookbookImages[1]} alt="Woven green tee look" width={900} height={600} sizes="(max-width: 900px) 100vw, 44vw" />
+        <Image src={lookbookImages[2]} alt="Woven blue tee streetwear look" width={900} height={600} sizes="(max-width: 900px) 100vw, 44vw" />
       </div>
     </section>
   );
@@ -962,7 +970,7 @@ export function CollectionIndexPage({ catalog = fallbackCatalog }: { catalog?: C
           <div className="woven-category-grid woven-route-categories">
             {categoryCards.map((card) => (
               <Link key={card.title} href={card.href} className="woven-category-card">
-                <img src={card.image} alt={`${card.title} collection`} />
+                <Image src={card.image} alt={`${card.title} collection - Woven`} width={700} height={900} sizes="(max-width: 768px) 100vw, 25vw" />
                 <span className="woven-image-shade" />
                 <strong>{card.title}</strong>
                 <small>Shop Now</small>
@@ -1207,13 +1215,13 @@ export function AboutExperience({ catalog = fallbackCatalog }: { catalog?: Catal
 
 export function InfoPage({ type, catalog = fallbackCatalog }: { type: "contact" | "track" | "size" | "privacy" | "terms" | "faq" | "returns"; catalog?: CatalogData }) {
   const content = {
-    contact: ["Contact Us", "Questions about sizing, delivery or a piece you have your eye on? Reach the Woven care team.", "hello@woven.pk"],
+    contact: ["Contact Woven", "Questions about sizing, delivery, wholesale, press, or a piece you have your eye on? Reach the Woven care team.", "We respond within 24 hours."],
     track: ["Track Order", "Enter your order email and number to follow your delivery status.", "Tracking opens after your order is confirmed."],
-    size: ["Size Guide", "Use these measurements as a starting point. Woven fits are relaxed and true to size.", "When between sizes, size up for a looser streetwear fit."],
-    privacy: ["Privacy Policy", "We collect only the details needed to process orders, support customers and improve the store.", "Your information is never sold."],
-    terms: ["Terms & Conditions", "Orders are subject to stock availability, payment confirmation and delivery coverage.", "Using this website means accepting Woven store policies."],
-    faq: ["FAQs", "Fast answers for sizing, orders, returns and payments.", "Still stuck? Contact customer care."],
-    returns: ["Shipping & Returns", "Most orders ship in 3-5 working days. Returns are accepted within 14 days for unworn items.", "Keep packaging and proof of purchase."],
+    size: ["Size Guide", "Use these garment measurements as a starting point. Woven fits are relaxed and true to size.", "When between sizes, size up for a looser everyday fit."],
+    privacy: ["Privacy Policy", "We collect only the details needed to process orders, support customers, prevent abuse, and improve the store.", "Your information is never sold."],
+    terms: ["Terms & Conditions", "Orders are subject to stock availability, payment confirmation, delivery coverage, and Pakistani law.", "Using this website means accepting Woven store policies."],
+    faq: ["Frequently Asked Questions", "Fast answers for sizing, orders, returns, clothing care, and Safepay payments.", "Still stuck? Contact customer care."],
+    returns: ["Shipping & Returns", "Most Pakistan orders ship in 3-5 working days. Returns are accepted within 14 days for eligible unworn items.", "Keep packaging and proof of purchase."],
   }[type];
 
   return (
@@ -1227,7 +1235,7 @@ export function InfoPage({ type, catalog = fallbackCatalog }: { type: "contact" 
             <span>{content[1]}</span>
             <strong>{content[2]}</strong>
           </div>
-          {type === "size" ? <SizeGuideTable /> : <InfoCards type={type} />}
+          {type === "contact" ? <ContactForm /> : type === "size" ? <SizeGuideTable /> : <InfoCards type={type} />}
         </section>
         <ServicePanel />
       </main>
@@ -1237,21 +1245,28 @@ export function InfoPage({ type, catalog = fallbackCatalog }: { type: "contact" 
 }
 
 function SizeGuideTable() {
+  const rows = [
+    ["Tees", "S", "38", "27", "17"],
+    ["Tees", "M", "40", "28", "18"],
+    ["Tees", "L", "42", "29", "19"],
+    ["Shirts", "S", "40", "28.5", "18"],
+    ["Shirts", "M", "42", "29.5", "18.5"],
+    ["Pants", "M", "32-34 waist", "40 outseam", "Straight"],
+    ["Blazers", "M", "40", "29", "Natural shoulder"],
+    ["Hoodies", "M", "43", "28", "Dropped shoulder"],
+    ["Jackets", "M", "44", "27.5", "Layer-ready"],
+    ["Accessories", "One Size", "Scarf 70 in", "Cap adjustable", "Universal"],
+  ];
+
   return (
     <div className="woven-size-table">
       <table>
         <thead>
-          <tr><th>Size</th><th>Chest</th><th>Waist</th><th>Length</th></tr>
+          <tr><th>Category</th><th>Size</th><th>Chest / Waist</th><th>Length</th><th>Fit Note</th></tr>
         </thead>
         <tbody>
-          {[
-            ["XS", "34-36", "28-30", "27"],
-            ["S", "36-38", "30-32", "28"],
-            ["M", "38-40", "32-34", "29"],
-            ["L", "40-42", "34-36", "30"],
-            ["XL", "42-44", "36-38", "31"],
-          ].map((row) => (
-            <tr key={row[0]}>{row.map((cell) => <td key={cell}>{cell}</td>)}</tr>
+          {rows.map((row) => (
+            <tr key={`${row[0]}-${row[1]}`}>{row.map((cell) => <td key={cell}>{cell}</td>)}</tr>
           ))}
         </tbody>
       </table>
@@ -1260,10 +1275,44 @@ function SizeGuideTable() {
 }
 
 function InfoCards({ type }: { type: string }) {
-  const cards =
-    type === "faq"
-      ? [["How long is delivery?", "Most orders arrive in 3-5 working days."], ["Can I exchange sizes?", "Yes, within 14 days if unworn."], ["Do you offer COD?", "Yes, card and cash on delivery are supported."]]
-      : [["01", "Clean product information and clear checkout."], ["02", "Secure payments and order confirmation."], ["03", "Support for returns, sizing and delivery questions."]];
+  const contentByType: Record<string, string[][]> = {
+    faq: [
+      ["How long is delivery?", "Most Pakistan orders arrive in 3-5 working days after confirmation."],
+      ["Can I exchange sizes?", "Yes. Size exchanges are accepted within 14 days if the item is unworn, unwashed, and has tags attached."],
+      ["How do returns work?", "Start a return through customer care with your order number. Approved refunds are processed in 5-7 business days after inspection."],
+      ["Which payments are supported?", "Safepay handles online card payments. Cash on delivery and bank transfer are available where supported."],
+      ["How should I wash cotton tees?", "Wash cold with similar colors, turn garments inside out, and line dry to protect shape and print."],
+      ["How should a hoodie fit?", "Woven hoodies are relaxed. Choose your usual size for easy layering or size up for an oversized look."],
+      ["Do prices include tax?", "Prices are shown in PKR. Any delivery or payment charges appear before order confirmation."],
+      ["Can I edit an order?", "Contact care quickly after checkout. Changes are possible before packing begins."],
+      ["Do you deliver across Pakistan?", "Yes, delivery covers major Pakistani cities and expands based on courier serviceability."],
+      ["Where can I ask about wholesale?", "Use the contact page and include your city, store name, and expected order quantity."],
+    ],
+    terms: [
+      ["Orders", "Orders are confirmed after stock and payment checks. Woven may cancel unavailable or suspicious orders."],
+      ["Pricing", "All prices are listed in PKR. Delivery charges and payment fees, if any, are shown during checkout."],
+      ["Delivery", "Estimated delivery is 3-5 working days in major cities, with longer timelines possible during launches, sales, weather delays, or courier disruptions."],
+      ["Jurisdiction", "These terms are governed by the laws of Pakistan. Disputes are subject to the competent courts of Karachi."],
+    ],
+    privacy: [
+      ["What we collect", "We collect order details, contact information, delivery addresses, payment status, support messages, and basic site analytics."],
+      ["Where data is processed", "Storefront, hosting, database, and email workflows may use Vercel, Supabase, Safepay, and email providers configured by Woven."],
+      ["How data is used", "Data is used to process orders, prevent fraud, answer support requests, improve the site, and send order or marketing emails where permitted."],
+      ["Your choices", "You can request correction or deletion of eligible personal data by contacting hello@woven.pk."],
+    ],
+    returns: [
+      ["Return window", "Eligible items can be returned or exchanged within 14 days of delivery."],
+      ["Condition", "Items must be unworn, unwashed, odor-free, damage-free, and returned with tags and original packaging."],
+      ["How to start", "Email hello@woven.pk with your order number, item name, reason, and photos if the item arrived damaged."],
+      ["Refund timing", "Approved refunds are issued within 5-7 business days after inspection. Bank timelines may vary."],
+    ],
+    track: [
+      ["Order confirmation", "You will receive confirmation after checkout and payment review."],
+      ["Tracking", "Tracking details are shared when the courier picks up your parcel."],
+      ["Support", "If a parcel has not moved for 48 hours, contact care with your order number."],
+    ],
+  };
+  const cards = contentByType[type] ?? [["01", "Clean product information and clear checkout."], ["02", "Secure payments and order confirmation."], ["03", "Support for returns, sizing and delivery questions."]];
 
   return (
     <div className="woven-info-cards">
@@ -1277,9 +1326,67 @@ function InfoCards({ type }: { type: string }) {
   );
 }
 
+function ContactForm() {
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    setStatus("loading");
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(Object.fromEntries(formData)),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Message could not be sent.");
+      }
+
+      form.reset();
+      setStatus("success");
+      setMessage("Message sent. The Woven care team will reply within 24 hours.");
+    } catch (error) {
+      setStatus("error");
+      setMessage(error instanceof Error ? error.message : "Message could not be sent.");
+    }
+  }
+
+  return (
+    <form className="woven-checkout-form woven-contact-form" onSubmit={handleSubmit}>
+      <label>
+        <span>Name</span>
+        <input required name="name" autoComplete="name" />
+      </label>
+      <label>
+        <span>Email</span>
+        <input required name="email" type="email" autoComplete="email" />
+      </label>
+      <label className="woven-wide-field">
+        <span>Subject</span>
+        <input required name="subject" />
+      </label>
+      <label className="woven-wide-field">
+        <span>Message</span>
+        <textarea required name="message" rows={6} />
+      </label>
+      <button className="woven-buy-button" type="submit" disabled={status === "loading"}>
+        {status === "loading" ? "Sending" : "Send Message"}
+      </button>
+      {message && <p className={`woven-checkout-message woven-wide-field ${status === "error" ? "is-error" : "is-success"}`}>{message}</p>}
+    </form>
+  );
+}
+
 function CheckoutForm({ products, onOrderComplete }: { products: CartProduct[]; onOrderComplete: () => void }) {
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "cod" | "bank_transfer">("card");
-  const [clientSecret, setClientSecret] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"safepay" | "cod" | "bank_transfer">("safepay");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
   const [customer, setCustomer] = useState({
@@ -1299,7 +1406,7 @@ function CheckoutForm({ products, onOrderComplete }: { products: CartProduct[]; 
     size: product.cartSize,
   }));
 
-  async function saveOrder(providerReference?: string) {
+  async function saveOrder(providerReference?: string, completeOrder = true) {
     const response = await fetch("/api/checkout", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -1318,7 +1425,11 @@ function CheckoutForm({ products, onOrderComplete }: { products: CartProduct[]; 
 
     setStatus("success");
     setMessage(`Order ${result.orderNumber} created. Payment status: ${result.paymentStatus}.`);
-    onOrderComplete();
+    if (completeOrder) {
+      onOrderComplete();
+    }
+
+    return result as { orderId?: string; orderNumber: string; paymentStatus: string; totalPkr: number };
   }
 
   async function handleCheckout(event: React.FormEvent<HTMLFormElement>) {
@@ -1327,28 +1438,29 @@ function CheckoutForm({ products, onOrderComplete }: { products: CartProduct[]; 
     setMessage("");
 
     try {
-      if (paymentMethod !== "card") {
+      if (paymentMethod !== "safepay") {
         await saveOrder();
         return;
       }
 
-      if (!stripePublishableKey || !stripePromise) {
-        throw new Error("Stripe publishable key is missing. Add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to enable card payments.");
-      }
+      const order = await saveOrder("safepay_pending", false);
 
-      const response = await fetch("/api/create-payment-intent", {
+      const response = await fetch("/api/safepay", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({
+          amount: subtotal + shipping,
+          orderId: order.orderId ?? order.orderNumber,
+          customerEmail: customer.email,
+        }),
       });
       const result = await response.json();
 
-      if (!response.ok || !result.clientSecret) {
-        throw new Error(result.error ?? "Card payment could not be initialized.");
+      if (!response.ok || !result.checkoutUrl) {
+        throw new Error(result.error ?? "Safepay checkout could not be initialized.");
       }
 
-      setClientSecret(result.clientSecret);
-      setStatus("idle");
+      window.location.href = result.checkoutUrl;
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Checkout failed.");
@@ -1384,7 +1496,7 @@ function CheckoutForm({ products, onOrderComplete }: { products: CartProduct[]; 
         </label>
         <div className="woven-payment-methods woven-wide-field">
           {[
-            ["card", "Card"],
+            ["safepay", "Safepay"],
             ["cod", "Cash On Delivery"],
             ["bank_transfer", "Bank Transfer"],
           ].map(([value, label]) => (
@@ -1393,8 +1505,7 @@ function CheckoutForm({ products, onOrderComplete }: { products: CartProduct[]; 
               type="button"
               className={paymentMethod === value ? "is-active" : ""}
               onClick={() => {
-                setPaymentMethod(value as "card" | "cod" | "bank_transfer");
-                setClientSecret("");
+                setPaymentMethod(value as "safepay" | "cod" | "bank_transfer");
                 setMessage("");
               }}
             >
@@ -1403,16 +1514,14 @@ function CheckoutForm({ products, onOrderComplete }: { products: CartProduct[]; 
           ))}
         </div>
         <button className="woven-buy-button" type="submit" disabled={status === "loading"}>
-          {status === "loading" ? "Preparing Checkout" : paymentMethod === "card" ? "Continue To Card Payment" : "Place Order"}
+          {status === "loading" ? "Preparing Checkout" : paymentMethod === "safepay" ? `Pay Rs. ${(subtotal + shipping).toLocaleString("en-PK")}` : "Place Order"}
         </button>
-        {message && <p className={`woven-checkout-message woven-wide-field ${status === "error" ? "is-error" : "is-success"}`}>{message}</p>}
-        {paymentMethod === "card" && clientSecret && stripePromise && (
-          <div className="woven-stripe-panel woven-wide-field">
-            <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe" } }}>
-              <StripePaymentForm customer={customer} onOrderSaved={saveOrder} />
-            </Elements>
-          </div>
+        {paymentMethod === "safepay" && (
+          <p className="woven-payment-note woven-wide-field">
+            Secured by <a href="https://getsafepay.com" target="_blank" rel="noopener noreferrer">Safepay</a>. You will be redirected to complete payment.
+          </p>
         )}
+        {message && <p className={`woven-checkout-message woven-wide-field ${status === "error" ? "is-error" : "is-success"}`}>{message}</p>}
       </form>
       <aside className="woven-summary">
         <h2>Order Summary</h2>
@@ -1436,64 +1545,6 @@ function CheckoutForm({ products, onOrderComplete }: { products: CartProduct[]; 
         </div>
       </aside>
     </div>
-  );
-}
-
-function StripePaymentForm({
-  customer,
-  onOrderSaved,
-}: {
-  customer: { customerName: string; email: string; phone: string; city: string; address: string };
-  onOrderSaved: (providerReference?: string) => Promise<void>;
-}) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [status, setStatus] = useState<"idle" | "processing" | "error" | "success">("idle");
-  const [message, setMessage] = useState("");
-
-  async function handlePayment(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!stripe || !elements) {
-      return;
-    }
-
-    setStatus("processing");
-    setMessage("");
-
-    const result = await stripe.confirmPayment({
-      elements,
-      redirect: "if_required",
-      confirmParams: {
-        return_url: `${window.location.origin}/checkout/confirm`,
-        receipt_email: customer.email,
-      },
-    });
-
-    if (result.error) {
-      setStatus("error");
-      setMessage(result.error.message ?? "Payment failed.");
-      return;
-    }
-
-    try {
-      await onOrderSaved(result.paymentIntent?.id);
-      setStatus("success");
-      setMessage(`Payment ${result.paymentIntent?.status ?? "confirmed"}. Your order is saved.`);
-    } catch (error) {
-      setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Payment succeeded, but order save failed.");
-    }
-  }
-
-  return (
-    <form className="woven-stripe-form" onSubmit={handlePayment}>
-      <PaymentElement />
-      <button className="woven-buy-button" type="submit" disabled={!stripe || status === "processing"}>
-        {status === "processing" ? "Processing Payment" : "Pay Securely"}
-      </button>
-      {message && <p className={`woven-checkout-message ${status === "error" ? "is-error" : "is-success"}`}>{message}</p>}
-    </form>
   );
 }
 

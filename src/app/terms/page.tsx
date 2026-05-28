@@ -2,8 +2,8 @@ import { InfoPage } from "@/components/woven-client";
 import { getCatalogData } from "@/lib/supabase-catalog";
 
 export const metadata = {
-  title: "Terms & Conditions | Woven",
-  description: "Read the Woven terms and conditions.",
+  title: "Terms & Conditions",
+  description: "Review Woven ordering, payment, delivery, returns, and Pakistani jurisdiction terms before placing your order.",
 };
 
 export default async function Page() {

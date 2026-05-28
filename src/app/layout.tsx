@@ -1,14 +1,68 @@
 import type { Metadata } from "next";
+import { Cormorant_Garamond, DM_Mono, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from "@/components/woven-client";
 
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  display: "swap",
+  variable: "--font-display",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+  variable: "--font-body",
+});
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: ["400"],
+  display: "swap",
+  variable: "--font-mono",
+});
+
 export const metadata: Metadata = {
-  title: "Woven | Ideas Stitched Into Reality",
-  description: "Theme-led clothing collections across Classic, Summer, and Winter.",
+  metadataBase: new URL("https://woven.pk"),
+  title: {
+    default: "Woven - Ideas Stitched Into Reality",
+    template: "%s - Woven",
+  },
+  description:
+    "Explore Woven's theme-led clothing collections across Classic, Summer, and Winter: everyday tees, shirts, pants, formal layers, hoodies, jackets, and accessories.",
+  keywords: [
+    "Woven clothing",
+    "clothing brand Pakistan",
+    "minimal clothing Pakistan",
+    "cotton t shirts Pakistan",
+    "hoodies Pakistan online",
+    "jackets Pakistan online",
+    "formal waistcoat Pakistan",
+    "everyday essentials clothing",
+    "Woven Pakistan",
+  ],
+  authors: [{ name: "Woven", url: "https://woven.pk" }],
+  creator: "Woven",
   openGraph: {
-    title: "Woven | Ideas Stitched Into Reality",
-    description: "Plain essentials, summer pieces, formal edits, and winter layers by Woven.",
     type: "website",
+    locale: "en_PK",
+    url: "https://woven.pk",
+    siteName: "Woven",
+    title: "Woven - Ideas Stitched Into Reality",
+    description: "Plain essentials, summer pieces, formal edits, and winter layers by Woven.",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Woven clothing collections" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@wovenpk",
+    creator: "@wovenpk",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
 };
 
@@ -18,11 +72,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en-PK" data-scroll-behavior="smooth" className={`${cormorant.variable} ${dmSans.variable} ${dmMono.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=DM+Mono&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400;1,9..40,500;1,9..40,700&family=IBM+Plex+Mono&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Rajdhani:wght@400;700&family=Space+Grotesk:wght@400;700&family=Syne:wght@700&display=swap" rel="stylesheet" />
+        <link
+          rel="preload"
+          as="image"
+          href="https://images.unsplash.com/photo-1523398002811-999ca8dec234?q=90&w=2200&auto=format&fit=crop"
+        />
       </head>
       <body className="antialiased">
         {children}
