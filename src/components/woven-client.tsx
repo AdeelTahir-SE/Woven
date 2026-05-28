@@ -12,6 +12,9 @@ import {
   type ThemeId,
 } from "@/lib/woven-data";
 
+export const SALE_DISCOUNT_PERCENT = 30;
+export const SALE_TEXT = `SALE ${SALE_DISCOUNT_PERCENT}% OFF EVERYTHING`;
+
 type CartProduct = Product & { cartQuantity: number; cartSize: string };
 type CartLine = {
   slug: string;
@@ -70,8 +73,8 @@ const fallbackProductImages = [
 
 const colorSwatches = ["#090909", "#c8b8a6", "#315e42", "#9fb8c9", "#a8262f"];
 const policyItems = [
-  ["Sustainable Fabrics", "100% Organic & Recycled"],
-  ["Ethically Crafted", "Fair wages & safe conditions"],
+  ["Free Shipping", "On orders over Rs. 7,500"],
+  ["Easy Returns", "14-day fit guarantee"],
   ["Secure Checkout", "Cards, COD and wallets"],
   ["Support", "Care team replies within 24h"],
 ];
@@ -95,9 +98,9 @@ const journalCards = [
 ];
 
 const fitCards = [
-  ["Boxy Tee", "Dropped shoulder, heavyweight handfeel, relaxed body."],
-  ["Everyday Hoodie", "Soft fleece, clean rib, roomy enough for layering."],
-  ["Cargo Pant", "Straight leg, practical pockets, easy movement."],
+  ["Boxy Tee", "Dropped shoulder, heavyweight handfeel, relaxed body.", "/images/boxy_tee_studio.png"],
+  ["Everyday Hoodie", "Soft fleece, clean rib, roomy enough for layering.", "/images/everyday_hoodie_studio.png"],
+  ["Cargo Pant", "Straight leg, practical pockets, easy movement.", "/images/cargo_pant_studio.png"],
 ];
 
 const reviewCards = [
@@ -230,31 +233,13 @@ function ButtonLink({
   );
 }
 
-function SaleRail() {
-  const saleText = "SALE 30% OFF EVERYTHING";
-  return (
-    <section className="woven-sale-rail" aria-label="Sale announcement">
-      <div>
-        {Array(20).fill(saleText).map((text, index) => (
-          <span key={`sale-${index}`}>
-            <strong>{text}</strong>
-            <span className="woven-sale-divider">•</span>
-          </span>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function Navigation() {
   const [open, setOpen] = useState(false);
   const cartCount = useCartCount();
 
   return (
-    <>
-      <SaleRail />
-      <header className="woven-nav">
-        <nav className="woven-shell woven-nav-inner">
+    <header className="woven-nav">
+      <nav className="woven-shell woven-nav-inner">
         <button className="woven-menu" type="button" aria-label="Toggle menu" onClick={() => setOpen((value) => !value)}>
           <span />
           <span />
@@ -262,11 +247,46 @@ function Navigation() {
         <Link className="woven-logo" href="/">
           WOVEN
         </Link>
-        <div className="woven-nav-links">
-          <Link href="/shop">Shop</Link>
-          <Link href="/collections">Collections</Link>
-          <Link href="/about">About</Link>
-          <Link href="/lookbook">Lookbook</Link>
+        <div className="woven-nav-center">
+          <div className="woven-nav-links">
+            <Link href="/shop">Shop</Link>
+            <Link href="/collections">Collections</Link>
+            <Link href="/about">About</Link>
+            <Link href="/lookbook">Lookbook</Link>
+          </div>
+          <div className="woven-mega-menu">
+            <div className="woven-shell woven-mega-menu-inner">
+              <div className="woven-mega-col">
+                <h4>SHOP</h4>
+                <Link href="/shop">All Products</Link>
+                <Link href="/collections/t-shirts">T-Shirts</Link>
+                <Link href="/collections/hoodies">Hoodies</Link>
+                <Link href="/collections/pants">Pants</Link>
+                <Link href="/collections/accessories">Accessories</Link>
+              </div>
+              <div className="woven-mega-col">
+                <h4>COLLECTIONS</h4>
+                <Link href="/collections/new-arrivals">New Arrivals</Link>
+                <Link href="/collections/bestsellers">Bestsellers</Link>
+                <Link href="/collections/minimal">Minimal Collection</Link>
+                <Link href="/collections/graphic-tees">Graphic Tees</Link>
+                <Link href="/collections/drops">Seasonal Drops</Link>
+              </div>
+              <div className="woven-mega-col">
+                <h4>INFORMATION</h4>
+                <Link href="/lookbook">Lookbook</Link>
+                <Link href="/size-guide">Size Guide</Link>
+                <Link href="/legal/returns">Shipping &amp; Returns</Link>
+                <Link href="/faq">FAQs</Link>
+              </div>
+              <div className="woven-mega-col woven-mega-image">
+                <img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=400&h=300" alt="New Arrivals" />
+                <h4>NEW ARRIVALS</h4>
+                <Link href="/collections/new-arrivals">Explore Now &rarr;</Link>
+                <div className="woven-menu-sale-banner">{SALE_TEXT}</div>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="woven-nav-actions" aria-label="Store actions">
           <Link href="/search" aria-label="Search">
@@ -275,8 +295,9 @@ function Navigation() {
           <Link href="/account/wishlist" aria-label="Account">
             <span className="woven-icon woven-icon-user" />
           </Link>
-          <Link href="/cart" aria-label={`Cart with ${cartCount} item${cartCount === 1 ? "" : "s"}`}>
+          <Link href="/cart" aria-label={`Cart with ${cartCount} item${cartCount === 1 ? "" : "s"}`} style={{ position: "relative" }}>
             <span className="woven-icon woven-icon-bag" />
+            {cartCount > 0 && <span className="woven-cart-badge">{cartCount}</span>}
           </Link>
         </div>
       </nav>
@@ -294,7 +315,6 @@ function Navigation() {
         </div>
       )}
     </header>
-    </>
   );
 }
 
@@ -494,7 +514,7 @@ function Bestsellers({ catalog }: { catalog: CatalogData }) {
   return (
     <section className="woven-section woven-shell">
       <div className="woven-section-heading">
-        <h2>Bestsellers</h2>
+        <h2>Best sellers</h2>
         <Link href="/collections">View All</Link>
       </div>
       <div className="woven-product-grid">
@@ -577,9 +597,11 @@ function FitGuideBand() {
           <h2>Made To Move Through Real Days.</h2>
         </div>
         <div className="woven-fit-cards">
-          {fitCards.map(([title, copy]) => (
+          {fitCards.map(([title, copy, img]) => (
             <article key={title}>
-              <span className="woven-value-icon" />
+              <div className="woven-fit-card-image">
+                <img src={img} alt={title} />
+              </div>
               <h3>{title}</h3>
               <p>{copy}</p>
             </article>
@@ -617,6 +639,8 @@ function OutfitBuilder() {
 }
 
 function ReviewsStrip() {
+  return null;
+  /*
   return (
     <section className="woven-reviews">
       <div className="woven-shell">
@@ -636,6 +660,7 @@ function ReviewsStrip() {
       </div>
     </section>
   );
+  */
 }
 
 function StoreCta() {
@@ -838,14 +863,33 @@ function FooterColumn({ title, links }: { title: string; links: [string, string]
   );
 }
 
+function SaleRail() {
+  return (
+    <section className="woven-sale-rail" aria-label="Sale announcement">
+      <div>
+        {Array(20).fill(SALE_TEXT).map((text, index) => (
+          <span key={`sale-${index}`}>
+            <strong>{text}</strong>
+            <span className="woven-sale-divider">•</span>
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function ThemeExperience({ catalog = fallbackCatalog }: { catalog?: CatalogData; themeId?: ThemeId }) {
   return (
     <div className="woven-page">
       <Navigation />
+
       <main>
+
         <Hero />
         <TrustStrip />
         <PromoRail />
+                            <SaleRail />
+
         <CollectionsShowcase />
         <Bestsellers catalog={catalog} />
         <FeaturedSlider catalog={catalog} />
@@ -1469,33 +1513,36 @@ function CartReview({
   const subtotal = products.reduce((sum, product) => sum + priceToNumber(product.price) * product.cartQuantity, 0);
 
   return (
-    <div className="woven-cart-layout">
-      <div className="woven-cart-lines">
-        {products.map((product, index) => (
-          <article key={`${product.slug}-${product.cartSize}`} className="woven-cart-line">
-            <ProductArtwork product={product} index={index} />
-            <div>
-              <Link href={`/products/${product.slug}`}>{product.name}</Link>
-              <span>{compactPrice(product.price)} / Size {product.cartSize}</span>
-              <div className="woven-qty-control">
-                <button type="button" onClick={() => updateItem(product.slug, product.cartSize, product.cartQuantity - 1)}>-</button>
-                <strong>{product.cartQuantity}</strong>
-                <button type="button" onClick={() => updateItem(product.slug, product.cartSize, product.cartQuantity + 1)}>+</button>
-                <button type="button" onClick={() => updateItem(product.slug, product.cartSize, 0)}>Remove</button>
+    <>
+      <div className="woven-menu-sale-banner" style={{ margin: "0 0 24px 0" }}>{SALE_TEXT}</div>
+      <div className="woven-cart-layout">
+        <div className="woven-cart-lines">
+          {products.map((product, index) => (
+            <article key={`${product.slug}-${product.cartSize}`} className="woven-cart-line">
+              <ProductArtwork product={product} index={index} />
+              <div>
+                <Link href={`/products/${product.slug}`}>{product.name}</Link>
+                <span>{compactPrice(product.price)} / Size {product.cartSize}</span>
+                <div className="woven-qty-control">
+                  <button type="button" onClick={() => updateItem(product.slug, product.cartSize, product.cartQuantity - 1)}>-</button>
+                  <strong>{product.cartQuantity}</strong>
+                  <button type="button" onClick={() => updateItem(product.slug, product.cartSize, product.cartQuantity + 1)}>+</button>
+                  <button type="button" onClick={() => updateItem(product.slug, product.cartSize, 0)}>Remove</button>
+                </div>
               </div>
-            </div>
-            <strong>Rs. {(priceToNumber(product.price) * product.cartQuantity).toLocaleString("en-US")}</strong>
-          </article>
-        ))}
+              <strong>Rs. {(priceToNumber(product.price) * product.cartQuantity).toLocaleString("en-US")}</strong>
+            </article>
+          ))}
+        </div>
+        <aside className="woven-cart-summary">
+          <h2>Cart Total</h2>
+          <div><span>Subtotal</span><strong>Rs. {subtotal.toLocaleString("en-US")}</strong></div>
+          <div><span>Shipping</span><strong>Calculated at checkout</strong></div>
+          <Link className="woven-buy-button" href="/checkout/payment">Checkout</Link>
+          <Link className="woven-buy-button woven-buy-button-light" href="/shop">Continue Shopping</Link>
+        </aside>
       </div>
-      <aside className="woven-cart-summary">
-        <h2>Cart Total</h2>
-        <div><span>Subtotal</span><strong>Rs. {subtotal.toLocaleString("en-US")}</strong></div>
-        <div><span>Shipping</span><strong>Calculated at checkout</strong></div>
-        <Link className="woven-buy-button" href="/checkout/payment">Checkout</Link>
-        <Link className="woven-buy-button woven-buy-button-light" href="/shop">Continue Shopping</Link>
-      </aside>
-    </div>
+    </>
   );
 }
 
