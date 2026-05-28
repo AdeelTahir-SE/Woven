@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 type CheckoutItem = {
   productSlug: string;
@@ -29,7 +29,7 @@ type CheckoutPayload = {
 };
 
 function hasSupabaseConfig() {
-  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+  return Boolean(SUPABASE_URL && SUPABASE_KEY);
 }
 
 function supabaseUrl(table: string) {
@@ -40,8 +40,8 @@ async function insertRow(table: string, body: unknown) {
   const response = await fetch(supabaseUrl(table), {
     method: "POST",
     headers: {
-      apikey: SUPABASE_ANON_KEY ?? "",
-      authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      apikey: SUPABASE_KEY ?? "",
+      authorization: `Bearer ${SUPABASE_KEY}`,
       "content-type": "application/json",
       prefer: "return=minimal",
     },
