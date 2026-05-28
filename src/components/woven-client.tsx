@@ -157,14 +157,19 @@ function useCartLines() {
       : [...current, { slug: product.slug, size, quantity: 1 }];
 
     writeCartLines(next);
+    window.dispatchEvent(new CustomEvent("woven-toast", { detail: `${product.name} added to cart` }));
   }
 
-  function updateItem(slug: string, size: string, quantity: number) {
+  function updateItem(slug: string, size: string, quantity: number, productName?: string) {
     const next = readCartLines()
       .map((line) => line.slug === slug && line.size === size ? { ...line, quantity } : line)
       .filter((line) => line.quantity > 0);
 
     writeCartLines(next);
+
+    if (quantity === 0 && productName) {
+      window.dispatchEvent(new CustomEvent("woven-toast", { detail: `${productName} removed from cart` }));
+    }
   }
 
   function clearCart() {
@@ -230,6 +235,35 @@ function ButtonLink({
     <Link className={`woven-btn ${variant === "light" ? "woven-btn-light" : "woven-btn-dark"}`} href={href}>
       {children}
     </Link>
+  );
+}
+
+function ToastContainer() {
+  const [toasts, setToasts] = useState<{ id: number; message: string }[]>([]);
+
+  useEffect(() => {
+    function handleToast(e: Event) {
+      const customEvent = e as CustomEvent<string>;
+      const id = Date.now() + Math.random();
+      setToasts((prev) => [...prev, { id, message: customEvent.detail }]);
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, 3000);
+    }
+    window.addEventListener("woven-toast", handleToast);
+    return () => window.removeEventListener("woven-toast", handleToast);
+  }, []);
+
+  if (toasts.length === 0) return null;
+
+  return (
+    <div className="woven-toast-container">
+      {toasts.map((toast) => (
+        <div key={toast.id} className="woven-toast">
+          {toast.message}
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -314,6 +348,7 @@ function Navigation() {
           ))}
         </div>
       )}
+      <ToastContainer />
     </header>
   );
 }
@@ -437,7 +472,7 @@ export function ProductArtwork({ product, tall = false, index = 0 }: { product: 
         setCurrentIndex((prev) => (prev + 1) % images.length);
       }, 1500);
     } else {
-      setCurrentIndex(0);
+      setTimeout(() => setCurrentIndex(0), 0);
     }
     return () => clearTimeout(timeout);
   }, [isHovered, currentIndex, images.length]);
@@ -786,7 +821,7 @@ export function Footer({ catalog = fallbackCatalog, activeThemeId = "classic" }:
           </Link>
           <p>Timeless essentials. Elevated everyday.</p>
           <div className="woven-socials">
-            <SocialLink href="https://instagram.com" label="Instagram" icon="instagram" />
+            <SocialLink href="https://www.instagram.com/woven.pakistan" label="Instagram" icon="instagram" />
             <SocialLink href="https://facebook.com" label="Facebook" icon="facebook" />
             <SocialLink href="https://tiktok.com" label="TikTok" icon="tiktok" />
             <SocialLink href="https://pinterest.com" label="Pinterest" icon="pinterest" />
@@ -851,14 +886,19 @@ function PaymentIcon({ type }: { type: "visa" | "mastercard" | "paypal" | "apple
 }
 
 function FooterColumn({ title, links }: { title: string; links: [string, string][] }) {
+  const [isOpen, setIsOpen] = useState(false);
   return (
-    <div className="woven-footer-column">
-      <h3>{title}</h3>
-      {links.map(([label, href]) => (
-        <Link key={`${title}-${label}`} href={href}>
-          {label}
-        </Link>
-      ))}
+    <div className={`woven-footer-column ${isOpen ? "open" : ""}`}>
+      <div className="woven-footer-summary" onClick={() => setIsOpen(!isOpen)}>
+        <h3>{title}</h3>
+      </div>
+      <div className="woven-footer-links">
+        {links.map(([label, href]) => (
+          <Link key={`${title}-${label}`} href={href}>
+            {label}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1488,7 +1528,7 @@ export function SimpleContentPage({ type, catalog = fallbackCatalog }: { type: "
               <EmptyCartState />
             )
           ) : (
-            <CartReview products={products} updateItem={updateItem} catalog={catalog} />
+            <CartReview products={products} updateItem={updateItem} />
           )}
         </section>
       </main>
@@ -1500,11 +1540,9 @@ export function SimpleContentPage({ type, catalog = fallbackCatalog }: { type: "
 function CartReview({
   products,
   updateItem,
-  catalog,
 }: {
   products: CartProduct[];
-  updateItem: (slug: string, size: string, quantity: number) => void;
-  catalog: CatalogData;
+  updateItem: (slug: string, size: string, quantity: number, productName?: string) => void;
 }) {
   if (products.length === 0) {
     return <EmptyCartState />;
@@ -1524,10 +1562,10 @@ function CartReview({
                 <Link href={`/products/${product.slug}`}>{product.name}</Link>
                 <span>{compactPrice(product.price)} / Size {product.cartSize}</span>
                 <div className="woven-qty-control">
-                  <button type="button" onClick={() => updateItem(product.slug, product.cartSize, product.cartQuantity - 1)}>-</button>
+                  <button type="button" onClick={() => updateItem(product.slug, product.cartSize, product.cartQuantity - 1, product.name)}>-</button>
                   <strong>{product.cartQuantity}</strong>
-                  <button type="button" onClick={() => updateItem(product.slug, product.cartSize, product.cartQuantity + 1)}>+</button>
-                  <button type="button" onClick={() => updateItem(product.slug, product.cartSize, 0)}>Remove</button>
+                  <button type="button" onClick={() => updateItem(product.slug, product.cartSize, product.cartQuantity + 1, product.name)}>+</button>
+                  <button type="button" onClick={() => updateItem(product.slug, product.cartSize, 0, product.name)}>Remove</button>
                 </div>
               </div>
               <strong>Rs. {(priceToNumber(product.price) * product.cartQuantity).toLocaleString("en-US")}</strong>
@@ -1567,7 +1605,7 @@ export function AccountPage({ catalog = fallbackCatalog }: { catalog?: CatalogDa
     if (accessToken) {
       window.localStorage.setItem("woven-auth-token", accessToken);
       window.history.replaceState(null, "", window.location.pathname);
-      setStatus("Google login connected.");
+      setTimeout(() => setStatus("Google login connected."), 0);
     }
 
     const token = accessToken ?? window.localStorage.getItem("woven-auth-token");

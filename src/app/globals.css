@@ -466,7 +466,7 @@ img {
   animation: woven-marquee 15s linear infinite;
 }
 
-.woven-sale-rail span {
+.woven-sale-rail > div > span {
   display: inline-flex;
   min-height: 54px;
   align-items: center;
@@ -1241,6 +1241,18 @@ img {
   font-size: 12px;
   font-weight: 950;
   text-transform: uppercase;
+  display: inline-block;
+  width: 100%;
+}
+
+.woven-footer-summary {
+  cursor: default;
+  pointer-events: none;
+}
+
+.woven-footer-links {
+  display: grid;
+  gap: 12px;
 }
 
 .woven-footer-column a {
@@ -2033,13 +2045,27 @@ img {
     margin: 0;
   }
 
-  .woven-footer-column a {
+  .woven-footer-links {
     display: none;
+  }
+  
+  .woven-footer-summary {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  
+  .woven-footer-column.open .woven-footer-links {
+    display: grid;
+    margin-top: 12px;
   }
 
   .woven-footer-column h3::after {
     float: right;
     content: "+";
+  }
+
+  .woven-footer-column.open h3::after {
+    content: "-";
   }
 
   .woven-footer-bottom {
@@ -2135,5 +2161,39 @@ img {
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 1ms !important;
+  }
+}
+
+.woven-toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.woven-toast {
+  background: var(--color-woven-text);
+  color: var(--color-woven-inverse);
+  padding: 12px 24px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  border-radius: var(--radius-btn);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: woven-toast-slide-up 300ms ease forwards;
+}
+
+@keyframes woven-toast-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
