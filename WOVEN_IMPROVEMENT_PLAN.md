@@ -1,4 +1,4 @@
-# Woven — Master Improvement & Refinement Plan
+﻿# Woven — Master Improvement & Refinement Plan
 **Site:** https://woven-psi.vercel.app/  
 **Last Updated:** May 2026  
 **Status:** Pre-Production → Production-Ready Roadmap
@@ -884,43 +884,43 @@ Use this as a sequential task list for the development sprint.
 - [ ] Add all missing environment variables to `.env.local` and Vercel
 - [ ] Run Supabase SQL migrations (orders, order_items, payments tables)
 - [ ] Create Supabase Storage bucket `product-images` with public read policy
-- [ ] Remove Stripe: `npm uninstall stripe @stripe/react-stripe-js @stripe/stripe-js`
-- [ ] Delete `src/app/api/create-payment-intent/route.ts`
+- [x] Remove Stripe: `npm uninstall stripe @stripe/react-stripe-js @stripe/stripe-js`
+- [x] Delete `src/app/api/create-payment-intent/route.ts`
 
 ### Phase 2 — Core Features (Week 1–2)
-- [ ] Implement `src/app/api/safepay/route.ts`
-- [ ] Implement `src/app/api/safepay/webhook/route.ts`
-- [ ] Replace `StripePaymentForm` with `SafepayCheckoutButton` in `woven-client.tsx`
+- [x] Implement `src/app/api/safepay/route.ts`
+- [x] Implement `src/app/api/safepay/webhook/route.ts`
+- [x] Replace `StripePaymentForm` with `SafepayCheckoutButton` in `woven-client.tsx`
 - [ ] Test Safepay sandbox checkout end-to-end
 - [ ] Implement `scripts/seed-supabase.ts` and run `npm run seed`
 - [ ] Verify seeded data and images in Supabase dashboard
 
 ### Phase 3 — SEO & Performance (Week 2)
-- [ ] Implement `src/app/sitemap.ts` with hreflang `en-PK` tags
-- [ ] Add `public/robots.txt`
-- [ ] Add `public/llms.txt`
-- [ ] Update `src/app/layout.tsx` with full root metadata
-- [ ] Add dynamic `generateMetadata` to `/products/[slug]` and `/collections/[slug]`
-- [ ] Add JSON-LD structured data to homepage and product pages
-- [ ] Migrate fonts to `next/font/google`
+- [x] Implement `src/app/sitemap.ts` with hreflang `en-PK` tags
+- [x] Add `public/robots.txt`
+- [x] Add `public/llms.txt`
+- [x] Update `src/app/layout.tsx` with full root metadata
+- [x] Add dynamic `generateMetadata` to `/products/[slug]` and `/collections/[slug]`
+- [x] Add JSON-LD structured data to homepage and product pages
+- [x] Migrate fonts to `next/font/google`
 
 ### Phase 4 — Performance (Week 2–3)
-- [ ] Replace all 12 `<img>` tags with `<Image />` from `next/image`
-- [ ] Add `priority` to hero image
-- [ ] Add `aspect-ratio` to all product card image containers
-- [ ] Add `<link rel="preload">` for LCP hero image
+- [x] Replace all 12 `<img>` tags with `<Image />` from `next/image`
+- [x] Add `priority` to hero image
+- [x] Add `aspect-ratio` to all product card image containers
+- [x] Add `<link rel="preload">` for LCP hero image
 - [ ] Run Lighthouse — target Performance ≥ 95, CLS ≤ 0.1
 - [ ] Run `npx @next/bundle-analyzer` and address any outliers
 
 ### Phase 5 — Auth, Content & Cleanup (Week 3)
 - [ ] Configure Google OAuth in Supabase dashboard
 - [ ] Add server-side auth guard to `/account/*` routes
-- [ ] Write real FAQ copy (10–15 questions)
-- [ ] Write Terms, Privacy, Returns legal pages
-- [ ] Write real Size Guide content
-- [ ] Build functional contact form (Resend or Formspree)
+- [x] Write real FAQ copy (10–15 questions)
+- [x] Write Terms, Privacy, Returns legal pages
+- [x] Write real Size Guide content
+- [x] Build functional contact form (Resend or Formspree)
 - [ ] Create `public/og-image.jpg` (1200×630px)
-- [ ] Remove all unused files and `console.log` statements
+- [x] Remove all unused files and `console.log` statements
 - [ ] Final Lighthouse audit — confirm all scores ≥ 95
 
 ### Phase 6 — AI Features (Phase 2, Post-Launch)
@@ -1859,43 +1859,43 @@ Use this as a sequential task list for the development sprint.
 - [ ] Add all missing environment variables to `.env.local` and Vercel
 - [ ] Run Supabase SQL migrations (orders, order_items, payments tables)
 - [ ] Create Supabase Storage bucket `product-images` with public read policy
-- [ ] Remove Stripe: `npm uninstall stripe @stripe/react-stripe-js @stripe/stripe-js`
-- [ ] Delete `src/app/api/create-payment-intent/route.ts`
+- [x] Remove Stripe: `npm uninstall stripe @stripe/react-stripe-js @stripe/stripe-js`
+- [x] Delete `src/app/api/create-payment-intent/route.ts`
 
 ### Phase 2 — Core Features (Week 1–2)
-- [ ] Implement `src/app/api/safepay/route.ts`
-- [ ] Implement `src/app/api/safepay/webhook/route.ts`
-- [ ] Replace `StripePaymentForm` with `SafepayCheckoutButton` in `woven-client.tsx`
+- [x] Implement `src/app/api/safepay/route.ts`
+- [x] Implement `src/app/api/safepay/webhook/route.ts`
+- [x] Replace `StripePaymentForm` with `SafepayCheckoutButton` in `woven-client.tsx`
 - [ ] Test Safepay sandbox checkout end-to-end
 - [ ] Implement `scripts/seed-supabase.ts` and run `npm run seed`
 - [ ] Verify seeded data and images in Supabase dashboard
 
 ### Phase 3 — SEO & Performance (Week 2)
-- [ ] Implement `src/app/sitemap.ts` with hreflang `en-PK` tags
-- [ ] Add `public/robots.txt`
-- [ ] Add `public/llms.txt`
-- [ ] Update `src/app/layout.tsx` with full root metadata
-- [ ] Add dynamic `generateMetadata` to `/products/[slug]` and `/collections/[slug]`
-- [ ] Add JSON-LD structured data to homepage and product pages
-- [ ] Migrate fonts to `next/font/google`
+- [x] Implement `src/app/sitemap.ts` with hreflang `en-PK` tags
+- [x] Add `public/robots.txt`
+- [x] Add `public/llms.txt`
+- [x] Update `src/app/layout.tsx` with full root metadata
+- [x] Add dynamic `generateMetadata` to `/products/[slug]` and `/collections/[slug]`
+- [x] Add JSON-LD structured data to homepage and product pages
+- [x] Migrate fonts to `next/font/google`
 
 ### Phase 4 — Performance (Week 2–3)
-- [ ] Replace all 12 `<img>` tags with `<Image />` from `next/image`
-- [ ] Add `priority` to hero image
-- [ ] Add `aspect-ratio` to all product card image containers
-- [ ] Add `<link rel="preload">` for LCP hero image
+- [x] Replace all 12 `<img>` tags with `<Image />` from `next/image`
+- [x] Add `priority` to hero image
+- [x] Add `aspect-ratio` to all product card image containers
+- [x] Add `<link rel="preload">` for LCP hero image
 - [ ] Run Lighthouse — target Performance ≥ 95, CLS ≤ 0.1
 - [ ] Run `npx @next/bundle-analyzer` and address any outliers
 
 ### Phase 5 — Auth, Content & Cleanup (Week 3)
 - [ ] Configure Google OAuth in Supabase dashboard
 - [ ] Add server-side auth guard to `/account/*` routes
-- [ ] Write real FAQ copy (10–15 questions)
-- [ ] Write Terms, Privacy, Returns legal pages
-- [ ] Write real Size Guide content
-- [ ] Build functional contact form (Resend or Formspree)
+- [x] Write real FAQ copy (10–15 questions)
+- [x] Write Terms, Privacy, Returns legal pages
+- [x] Write real Size Guide content
+- [x] Build functional contact form (Resend or Formspree)
 - [ ] Create `public/og-image.jpg` (1200×630px)
-- [ ] Remove all unused files and `console.log` statements
+- [x] Remove all unused files and `console.log` statements
 - [ ] Final Lighthouse audit — confirm all scores ≥ 95
 
 ### Phase 6 — AI Features (Phase 2, Post-Launch)

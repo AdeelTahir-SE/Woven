@@ -70,34 +70,34 @@ const fallbackProductImages = [
 
 const colorSwatches = ["#090909", "#c8b8a6", "#315e42", "#9fb8c9", "#a8262f"];
 const policyItems = [
-  ["Free Shipping", "On orders over Rs. 7,500"],
-  ["Easy Returns", "14-day fit guarantee"],
-  ["Secure Checkout", "Cards, COD and wallets"],
+  ["Pakistan Delivery", "Fast shipping across major cities"],
+  ["Easy Returns", "14-day fit and size support"],
+  ["Secure Checkout", "Safepay, COD, and bank transfer"],
   ["Support", "Care team replies within 24h"],
 ];
 
 const journalCards = [
   {
-    title: "How To Build A Quiet Uniform",
+    title: "How To Build A Minimal Everyday Wardrobe",
     tag: "Style Notes",
     image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=90&w=1200&auto=format&fit=crop",
   },
   {
-    title: "The Everyday Weight Guide",
+    title: "Cotton T-Shirt Weight And Fit Guide",
     tag: "Fabric",
     image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=90&w=1200&auto=format&fit=crop",
   },
   {
-    title: "Four Fits For Real Days",
+    title: "Hoodies, Jackets, And Layers For Real Days",
     tag: "Lookbook",
     image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=90&w=1200&auto=format&fit=crop",
   },
 ];
 
 const fitCards = [
-  ["Boxy Tee", "Dropped shoulder, heavyweight handfeel, relaxed body.", "/images/boxy_tee_studio.png"],
-  ["Everyday Hoodie", "Soft fleece, clean rib, roomy enough for layering.", "/images/everyday_hoodie_studio.png"],
-  ["Cargo Pant", "Straight leg, practical pockets, easy movement.", "/images/cargo_pant_studio.png"],
+  ["Cotton Boxy Tee", "A relaxed everyday cotton t-shirt with dropped shoulders and a heavyweight handfeel.", "/images/boxy_tee_studio.png"],
+  ["Everyday Hoodie", "Soft fleece, clean rib, and enough room for winter layering in Pakistan.", "/images/everyday_hoodie_studio.png"],
+  ["Cargo Pant", "Straight-leg utility pants with practical pockets and easy movement.", "/images/cargo_pant_studio.png"],
 ];
 
 function priceToNumber(price: string) {
@@ -285,18 +285,18 @@ function Navigation() {
               <div className="woven-mega-col">
                 <h4>SHOP</h4>
                 <Link href="/shop">All Products</Link>
-                <Link href="/collections/t-shirts">T-Shirts</Link>
-                <Link href="/collections/hoodies">Hoodies</Link>
-                <Link href="/collections/pants">Pants</Link>
-                <Link href="/collections/accessories">Accessories</Link>
+                <Link href="/collections/plain-essentials">T-Shirts</Link>
+                <Link href="/collections/ice-hoodies">Hoodies</Link>
+                <Link href="/collections/light-pants">Pants</Link>
+                <Link href="/collections/winter-essentials">Accessories</Link>
               </div>
               <div className="woven-mega-col">
                 <h4>COLLECTIONS</h4>
-                <Link href="/collections/new-arrivals">New Arrivals</Link>
-                <Link href="/collections/bestsellers">Bestsellers</Link>
-                <Link href="/collections/minimal">Minimal Collection</Link>
-                <Link href="/collections/graphic-tees">Graphic Tees</Link>
-                <Link href="/collections/drops">Seasonal Drops</Link>
+                <Link href="/collections/plain-essentials">Plain Essentials</Link>
+                <Link href="/collections/formal-edit">Formal Edit</Link>
+                <Link href="/collections/sky-t-shirts">Sky T-Shirts</Link>
+                <Link href="/collections/cold-air-jackets">Cold Air Jackets</Link>
+                <Link href="/collections/summer-sets">Summer Sets</Link>
               </div>
               <div className="woven-mega-col">
                 <h4>INFORMATION</h4>
@@ -314,7 +314,7 @@ function Navigation() {
                   sizes="(max-width: 900px) 100vw, 25vw"
                 />
                 <h4>NEW ARRIVALS</h4>
-                <Link href="/collections/new-arrivals">Explore Now &rarr;</Link>
+                <Link href="/collections">Explore Now &rarr;</Link>
                 <div className="woven-menu-sale-banner">{SALE_TEXT}</div>
               </div>
             </div>
@@ -396,17 +396,17 @@ function Hero() {
       <div className="woven-hero-media" />
       <div className="woven-shell woven-hero-content">
         <h1>
-          Built For
+          Woven
           <br />
-          Every Day.
+          Clothing
           <br />
-          Made To Last.
+          Essentials.
         </h1>
-        <p>Timeless essentials. Elevated everyday.</p>
+        <p>Minimal clothing in Pakistan for everyday tees, pants, hoodies, jackets, and seasonal layers.</p>
         <div className="woven-hero-actions">
-          <ButtonLink href="/collections">Shop Now</ButtonLink>
+          <ButtonLink href="/shop">Shop Clothing</ButtonLink>
           <ButtonLink href="/about" variant="light">
-            Explore
+            About Woven
           </ButtonLink>
         </div>
       </div>
@@ -418,8 +418,8 @@ function CollectionsShowcase() {
   return (
     <section className="woven-section woven-shell">
       <div className="woven-section-heading woven-centered">
-        <h2>Shop Collections</h2>
-        <p>Find your fit. Own your style.</p>
+        <h2>Shop Woven Collections</h2>
+        <p>Theme-led clothing essentials for daily wear, warm days, and winter layering.</p>
       </div>
       <div className="woven-category-grid">
         {categoryCards.map((card) => (
@@ -556,7 +556,7 @@ function Bestsellers({ catalog }: { catalog: CatalogData }) {
   return (
     <section className="woven-section woven-shell">
       <div className="woven-section-heading">
-        <h2>Best sellers</h2>
+        <h2>Best Selling Essentials</h2>
         <Link href="/collections">View All</Link>
       </div>
       <div className="woven-product-grid">
@@ -579,8 +579,8 @@ function FeaturedSlider({ catalog }: { catalog: CatalogData }) {
   return (
     <section className="woven-section woven-slider-section">
       <div className="woven-shell woven-section-heading">
-        <h2>New Arrivals</h2>
-        <Link href="/collections">Swipe The Edit</Link>
+        <h2>New Clothing Arrivals</h2>
+        <Link href="/collections">Shop The Edit</Link>
       </div>
       <div className="woven-slider" aria-label="New arrivals horizontal product slider">
         {products.map((product, index) => (
@@ -597,7 +597,7 @@ function EditorialGrid() {
   return (
     <section className="woven-section woven-shell">
       <div className="woven-section-heading">
-        <h2>Editorial Notes</h2>
+        <h2>Style And Fabric Notes</h2>
         <Link href="/lookbook">Read More</Link>
       </div>
       <div className="woven-journal-grid">
@@ -636,7 +636,7 @@ function FitGuideBand() {
       <div className="woven-shell woven-fit-grid">
         <div>
           <p>Fit Guide</p>
-          <h2>Made To Move Through Real Days.</h2>
+          <h2>Everyday Fits For Tees, Hoodies, Pants, And Jackets.</h2>
         </div>
         <div className="woven-fit-cards">
           {fitCards.map(([title, copy, img]) => (
@@ -658,13 +658,13 @@ function OutfitBuilder() {
   return (
     <section className="woven-section woven-shell">
       <div className="woven-section-heading">
-        <h2>Build The Fit</h2>
-        <Link href="/shop">Shop The Set</Link>
+        <h2>Build A Minimal Outfit</h2>
+        <Link href="/shop">Shop Essentials</Link>
       </div>
       <div className="woven-outfit-builder">
         {[
-          ["01", "Start With A Tee", "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=90&w=1200&auto=format&fit=crop"],
-          ["02", "Add A Layer", "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=90&w=1200&auto=format&fit=crop"],
+          ["01", "Start With A Cotton Tee", "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=90&w=1200&auto=format&fit=crop"],
+          ["02", "Add A Hoodie Or Jacket", "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=90&w=1200&auto=format&fit=crop"],
           ["03", "Finish With Pants", "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?q=90&w=1200&auto=format&fit=crop"],
         ].map(([number, title, image]) => (
           <Link key={number} href="/shop" className="woven-outfit-card">
@@ -710,11 +710,11 @@ function StoreCta() {
     <section className="woven-store-cta woven-shell">
       <div>
         <p>Need Help Choosing?</p>
-        <h2>Find Your Size, Track Your Order, Or Talk To Care.</h2>
+        <h2>Find Your Clothing Size, Read Delivery Details, Or Talk To Care.</h2>
       </div>
       <div>
         <Link href="/size-guide">Size Guide</Link>
-        <Link href="/track-order">Track Order</Link>
+        <Link href="/legal/returns">Shipping &amp; Returns</Link>
         <Link href="/contact">Contact Us</Link>
       </div>
     </section>
@@ -728,8 +728,8 @@ function Lookbook() {
         <Image src={lookbookImages[0]} alt="Woven lookbook model in everyday essentials" width={1200} height={900} sizes="(max-width: 900px) 100vw, 56vw" />
         <div>
           <h2>Lookbook</h2>
-          <p>Real fits. Real people.</p>
-          <ButtonLink href="/drops" variant="light">
+          <p>Everyday outfits, cotton basics, and seasonal layers by Woven.</p>
+          <ButtonLink href="/lookbook" variant="light">
             Explore Looks
           </ButtonLink>
         </div>
@@ -776,8 +776,8 @@ function BrandStory() {
         <div className="woven-brand-copy">
           <h2>We Are Woven.</h2>
           <p>
-            Born from a love for simplicity and quality. Woven creates timeless essentials that fit into your life and
-            elevate your everyday.
+            Woven is a Pakistani clothing brand creating minimal wardrobe essentials for daily wear, warm days,
+            polished moments, and cold-weather layering.
           </p>
           <ButtonLink href="/about" variant="light">
             Our Story
@@ -802,8 +802,8 @@ function Newsletter() {
     <section className="woven-newsletter">
       <div className="woven-shell woven-newsletter-inner">
         <div>
-          <h2>Stay In The Loop.</h2>
-          <p>New drops, exclusive offers and more.</p>
+          <h2>Join The Woven List.</h2>
+          <p>Get new clothing drops, size updates, and seasonal essentials first.</p>
           <form onSubmit={(event) => event.preventDefault()} className="bg-white">
             <input type="email" placeholder="Enter your email" aria-label="Email address" className="text-black" />
             <button type="submit" aria-label="Subscribe">
@@ -826,7 +826,7 @@ export function Footer({ catalog = fallbackCatalog, activeThemeId = "classic" }:
           <Link className="woven-footer-logo" href="/">
             WOVEN
           </Link>
-          <p>Timeless essentials. Elevated everyday.</p>
+          <p>Minimal clothing essentials in Pakistan, made for repeat wear.</p>
           <div className="woven-socials">
             <SocialLink href="https://www.instagram.com/woven.pakistan" label="Instagram" icon="instagram" />
             <SocialLink href="https://facebook.com" label="Facebook" icon="facebook" />
@@ -837,7 +837,7 @@ export function Footer({ catalog = fallbackCatalog, activeThemeId = "classic" }:
         <FooterColumn title="Shop" links={[["All Products", "/shop"], ["T-Shirts", "/collections/plain-essentials"], ["Hoodies", "/collections/ice-hoodies"], ["Pants", "/collections/light-pants"], ["Accessories", "/collections/winter-essentials"]]} />
         <FooterColumn title="Collections" links={collections.map((collection) => [collection.title, `/collections/${collection.slug}`])} />
         <FooterColumn title="Information" links={[["About Us", "/about"], ["Lookbook", "/lookbook"], ["Size Guide", "/size-guide"], ["Shipping & Returns", "/legal/returns"], ["FAQs", "/faq"]]} />
-        <FooterColumn title="Customer Care" links={[["Contact Us", "/contact"], ["Track Order", "/track-order"], ["Privacy Policy", "/privacy"], ["Terms & Conditions", "/terms"]]} />
+        <FooterColumn title="Customer Care" links={[["Contact Us", "/contact"], ["Privacy Policy", "/privacy"], ["Terms & Conditions", "/terms"]]} />
       </div>
       <div className="woven-shell woven-footer-bottom">
         <span>© 2024 Woven. All rights reserved.</span>
@@ -964,8 +964,8 @@ export function CollectionIndexPage({ catalog = fallbackCatalog }: { catalog?: C
       <main className="woven-route-main">
         <section className="woven-shell">
           <div className="woven-section-heading woven-centered">
-            <h1>Shop Collections</h1>
-            <p>Find your fit. Own your style.</p>
+            <h1>Woven Clothing Collections</h1>
+            <p>Shop Classic, Summer, and Winter edits across cotton tees, formal layers, hoodies, jackets, pants, and accessories.</p>
           </div>
           <div className="woven-category-grid woven-route-categories">
             {categoryCards.map((card) => (
@@ -998,9 +998,9 @@ export function ShopPage({ catalog = fallbackCatalog }: { catalog?: CatalogData 
       <main className="woven-route-main">
         <section className="woven-shop-hero woven-shell">
           <div>
-            <p>All Products</p>
+            <p>Online Clothing Store Pakistan</p>
             <h1>Shop Woven</h1>
-            <span>Everyday essentials, edited by fit, fabric and repeat wear.</span>
+            <span>Minimal clothing essentials edited by fit, fabric, season, and repeat wear.</span>
           </div>
         </section>
         <CollectionsShowcase />
@@ -1035,7 +1035,7 @@ export function CollectionDetailPage({ catalog = fallbackCatalog, collection }: 
         <section className="woven-shell">
           <div className="woven-section-heading">
             <p>{collection.tagline}</p>
-            <h1>{collection.title}</h1>
+            <h1>{collection.title} - Woven Collection</h1>
           </div>
           <div className="woven-product-grid woven-route-products">
             {products.map((product, index) => (
@@ -1132,21 +1132,6 @@ export function ProductDetailPage({ catalog = fallbackCatalog, product, collecti
   );
 }
 
-export function DropsPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
-  return (
-    <div className="woven-page">
-      <Navigation />
-      <main>
-        <Lookbook />
-        <Bestsellers catalog={catalog} />
-        <FeaturedSlider catalog={catalog} />
-        <Newsletter />
-      </main>
-      <Footer catalog={catalog} />
-    </div>
-  );
-}
-
 export function LookbookPage({ catalog = fallbackCatalog }: { catalog?: CatalogData }) {
   return (
     <div className="woven-page">
@@ -1213,10 +1198,9 @@ export function AboutExperience({ catalog = fallbackCatalog }: { catalog?: Catal
   );
 }
 
-export function InfoPage({ type, catalog = fallbackCatalog }: { type: "contact" | "track" | "size" | "privacy" | "terms" | "faq" | "returns"; catalog?: CatalogData }) {
+export function InfoPage({ type, catalog = fallbackCatalog }: { type: "contact" | "size" | "privacy" | "terms" | "faq" | "returns"; catalog?: CatalogData }) {
   const content = {
     contact: ["Contact Woven", "Questions about sizing, delivery, wholesale, press, or a piece you have your eye on? Reach the Woven care team.", "We respond within 24 hours."],
-    track: ["Track Order", "Enter your order email and number to follow your delivery status.", "Tracking opens after your order is confirmed."],
     size: ["Size Guide", "Use these garment measurements as a starting point. Woven fits are relaxed and true to size.", "When between sizes, size up for a looser everyday fit."],
     privacy: ["Privacy Policy", "We collect only the details needed to process orders, support customers, prevent abuse, and improve the store.", "Your information is never sold."],
     terms: ["Terms & Conditions", "Orders are subject to stock availability, payment confirmation, delivery coverage, and Pakistani law.", "Using this website means accepting Woven store policies."],
