@@ -1579,6 +1579,10 @@ img {
   content: "+";
 }
 
+.woven-detail-row[open] summary::after {
+  content: "-";
+}
+
 .woven-detail-row p {
   margin-top: 10px;
   color: var(--color-woven-muted);
